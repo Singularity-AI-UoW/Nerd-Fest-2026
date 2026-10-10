@@ -17,6 +17,7 @@ It runs on a Windows laptop at the venue. Setup is from 1pm on 30/10/2026. Votin
 3. **Tailscale.** Install Tailscale on the laptop and sign in. The backup AI model is reached through it.
 4. **The arcade button.** It must send the **F9** key. If it sends a different key, change `key` under `[button]` in `config.toml`.
 5. **Sign-up QR.** Save `sign_up_qr.svg` in the project folder.
+6. **Gallery update (once, from the dev machine).** After pulling a version that changes `gallery/`, in the `gallery` folder run `npx wrangler d1 execute nerdfest-gallery --remote --file=schema.sql` (safe to repeat: it only adds missing tables), then `npx wrangler deploy`.
 
 ## Running it
 
@@ -50,7 +51,11 @@ Use the organiser page (`/organiser`).
 
   If nobody does anything for 3 minutes, the stall moves on by itself. Pictures also show their QR code on the idle slideshow, so visitors can come back and scan it later. That QR has no claim code in it: only the take-home card shows the claim code.
 - **Remove an image.** **Remove last image** takes down the most recent picture. To remove another, type its 8-character id and click Remove. It is deleted from the gallery as well.
-- **Winners.** After voting closes, the top three appear here with their claim codes. Tick **Claimed** when a prize has been handed over.
+- **Winners.** After voting closes, the top three appear here with their claim codes, and the TV shows the winning picture with its claim code.
+  - **Contact / Code.** Visitors can leave an email or mobile number on their picture page within 5 minutes of making it. **Code ✓** means the contact came from the picture's owner. Never send the prize to a **✗** contact.
+  - **In person.** Hand the card over only if their phone shows the picture page with the same claim code. Someone who only photographed the TV won't have it.
+  - **At 6:30pm.** If 1st place hasn't come and has no ✓ contact, go down the list: the first with a ✓ contact gets the card details.
+  - Tick **Claimed** when the prize has been handed over or sent.
 
 ## After the event
 
@@ -61,7 +66,7 @@ Use the organiser page (`/organiser`).
    uv run python scripts/wipe_gallery.py --yes
    ```
 
-   It shows which gallery it is wiping, then deletes every picture. It does nothing without `--yes`.
+   It shows which gallery it is wiping, then deletes every picture, with its votes and any contact left for it. It does nothing without `--yes`.
 
 ## For developers
 

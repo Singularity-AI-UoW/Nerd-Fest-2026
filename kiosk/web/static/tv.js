@@ -185,7 +185,12 @@
     };
     img.src = slide.url;
     wrap.appendChild(img);
-    if (slide.prompt) wrap.appendChild(el("div", "caption", slide.prompt));
+    if (slide.prompt) {
+      // The padding sits on the outer box so a clamped third line can't peek out under it.
+      var caption = el("div", "caption");
+      caption.appendChild(el("div", "caption-text", slide.prompt));
+      wrap.appendChild(caption);
+    }
     if (slide.qr_svg) {
       var qrBox = el("div", "slide-qr");
       var qr = el("div", "qr");
@@ -288,6 +293,8 @@
     winner: function (m) {
       $("winner-image").src = m.image_url || "";
       $("winner-prompt").textContent = m.prompt || "";
+      $("winner-code").textContent = m.claim_code || "";
+      $("winner-claim").hidden = !m.claim_code; // a picture made elsewhere has no code here
       var box = $("winner-top3");
       box.textContent = "";
       (Array.isArray(m.top3) ? m.top3 : []).forEach(function (t) {

@@ -1,8 +1,10 @@
 """The winner screen: after voting closes, the TV shows the winning picture.
 
-`winners` joins the gallery's top 3 with the claim codes in the local store, for the
-organiser page. `WinnerScreen` sends the TV the `winner` message while the show is idle.
-That message never carries a claim code: the visitor shows theirs at the stall.
+`winners` joins the gallery's top 3 with the claim codes in the local store and the
+contacts visitors left on the gallery, for the organiser page. `WinnerScreen` sends the
+TV the `winner` message while the show is idle. That message carries the winner's claim
+code only (never a runner-up's): the person who has it shows the same code on their phone.
+Contacts are never sent to the TV.
 """
 from __future__ import annotations
 
@@ -10,6 +12,8 @@ import asyncio
 import logging
 from datetime import datetime, timezone
 from typing import Callable
+
+import httpx
 
 from kiosk.store import Store
 
@@ -30,17 +34,53 @@ def _top3(leaderboard: dict | None) -> list[dict]:
     ]
 
 
-def winners(leaderboard: dict | None, store: Store) -> list[dict]:
-    """The top 3 with claim codes from the local store (None if the picture is not there)."""
+Claims = dict[str, dict]  # image id -> {"contact", "code"}
+
+
+async def fetch_claims(http: httpx.AsyncClient, gallery_url: str, token: str) -> Claims | None:
+    """The contacts left for the top 3, from the gallery. None if it cannot be reached."""
+    try:
+        response = await http.get(gallery_url.rstrip("/") + "/api/claims",
+                                  headers={"Authorization": f"Bearer {token}"})
+        response.raise_for_status()
+        items = response.json()["claims"]
+        if not isinstance(items, list):
+            raise ValueError("not a list")
+    except Exception as exc:  # noqa: BLE001 - network or shape errors: the table says so
+        log.warning("claims fetch failed: %s", type(exc).__name__)
+        return None
+    return {
+        i["image_id"]: {"contact": i["contact"], "code": i["code"]}
+        for i in items
+        if isinstance(i, dict) and isinstance(i.get("image_id"), str)
+        and isinstance(i.get("contact"), str) and isinstance(i.get("code"), str)
+    }
+
+
+def winners(leaderboard: dict | None, store: Store, claims: Claims | None) -> list[dict]:
+    """The top 3 with claim codes from the local store (None if the picture is not there)
+    and any contact left for it. `contact_status` is "ok" when the code sent with the
+    contact matches the local one, "mismatch" when it does not, "none" with no contact,
+    and "unreachable" when the gallery could not be asked (claims is None)."""
     rows = []
     for rank, item in enumerate(_top3(leaderboard), start=1):
         votes = item.get("votes")
+        code = store.claim_for(item["id"])
+        left = (claims or {}).get(item["id"])
+        if claims is None:
+            status = "unreachable"
+        elif left is None:
+            status = "none"
+        else:
+            status = "ok" if code is not None and left["code"] == code else "mismatch"
         rows.append({
             "rank": rank,
             "id": item["id"],
             "prompt": str(item.get("prompt") or ""),
             "votes": votes if isinstance(votes, int) else 0,
-            "claim_code": store.claim_for(item["id"]),
+            "claim_code": code,
+            "contact": left["contact"] if left else None,
+            "contact_status": status,
         })
     return rows
 
@@ -50,13 +90,14 @@ def _utc_now() -> datetime:
 
 
 class WinnerScreen:
-    def __init__(self, close_at: datetime, slideshow, hub, *,
+    def __init__(self, close_at: datetime, slideshow, hub, store: Store, *,
                  is_idle: Callable[[], bool], clock: Callable[[], datetime] = _utc_now,
                  every_s: float = WINNER_EVERY_S):
         """`slideshow` supplies the last good leaderboard and the absolute gallery URLs."""
         self._close_at = close_at
         self._slideshow = slideshow
         self._hub = hub
+        self._store = store
         self._is_idle = is_idle
         self._clock = clock
         self._every_s = every_s
@@ -70,15 +111,17 @@ class WinnerScreen:
         board = self._slideshow.leaderboard
         if not self._closed(board):
             return None
+        top3 = _top3(board)
         entries = [
             {"url": self._slideshow.absolute_url(i["url"]), "prompt": str(i.get("prompt") or ""),
              "votes": i["votes"] if isinstance(i.get("votes"), int) else 0}
-            for i in _top3(board)
+            for i in top3
         ]
         if not entries:
             return None
         first = entries[0]
-        return {"type": "winner", "image_url": first["url"], "prompt": first["prompt"], "top3": entries}
+        return {"type": "winner", "image_url": first["url"], "prompt": first["prompt"],
+                "claim_code": self._store.claim_for(top3[0]["id"]), "top3": entries}
 
     async def tick(self) -> bool:
         """Send the winner card if voting has closed and the show is idle. True if sent."""

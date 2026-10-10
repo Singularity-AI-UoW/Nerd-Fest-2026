@@ -23,7 +23,7 @@ class FakeControls:
         self.removed.append(id)
         return self.remove_result
 
-    def winners(self) -> list[dict]:
+    async def winners(self) -> list[dict]:
         return self.winner_rows
 
 
@@ -249,7 +249,9 @@ def test_tv_uses_exact_visitor_strings(client):
     text = client.get("/tv").text + client.get("/static/tv.js").text
     for s in ["Hold for kid mode, press twice for nerd mode", "Hold the button and talk",
               "Press to go, hold to try again", "Back soon",
-              "Winner: show your claim code at the stall", "Press the big button!"]:
+              "Is this your code?", "Come to the stall by 6:30pm with your phone.",
+              "Winners at 6pm. Scan your QR within 5 minutes to leave a contact if you won't be here.",
+              "Press the button when you're done", "Club sign up", "Press the big button!"]:
         assert s in text, s
 
 

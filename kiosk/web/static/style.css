@@ -78,12 +78,14 @@ body.stage-wide .side { display: none; }
   left: 0; right: 0; bottom: 0;
   padding: 90px 80px 28px;
   background: linear-gradient(to top, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0));
-  font-size: 56px;
+  font-size: 48px;
   font-weight: 700;
   line-height: 1.2;
   text-align: center;
+}
+#slideshow .slide .caption-text {
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -144,6 +146,7 @@ body.top3-on #idle-signup { display: none; } /* the card needs the whole width *
 #winner > img { flex: 1; min-height: 0; }
 #winner-prompt { font-size: 44px; font-weight: 700; text-align: center; }
 #winner-claim { font-size: 44px; font-weight: 700; text-align: center; color: var(--purple); }
+#winner-code { font-size: 96px; letter-spacing: 8px; color: var(--orange); margin: 0 16px; vertical-align: middle; }
 #winner-deadline { font-size: 32px; text-align: center; }
 #winner-top3 { display: flex; gap: 16px; }
 #winner-top3 img { height: 140px; width: 140px; object-fit: cover; border-radius: 12px; }

@@ -1,5 +1,6 @@
 // Server-rendered public pages. Every visitor-supplied string goes through escapeHtml.
 import type { Leaderboard } from "./votes";
+import { contactDeadline } from "./claims";
 
 export interface ImageRow {
   id: string;
@@ -51,6 +52,12 @@ img{display:block;width:100%;height:auto;border-radius:12px;background:#1b222a}
 .claim{margin:16px 0;padding:16px;border-radius:12px;background:#1f2a1f;border:2px solid #4caf50;text-align:center}
 .claim .code{display:block;font-size:3rem;font-weight:700;letter-spacing:.2em;margin:4px 0}
 .claim p{margin:4px 0}
+.contact{margin:16px 0;padding:16px;border-radius:12px;background:#1b222a;border:2px solid #2f81f7}
+.contact h2{margin:0 0 6px}
+.contact p{margin:6px 0}
+.contact input{width:100%;min-height:44px;margin:8px 0;padding:10px 12px;border-radius:10px;border:1px solid #3a4552;background:#101418;color:#f2f4f7;font:inherit}
+.contact .note{font-size:.85rem;color:#aab4bf}
+.contact-msg{min-height:1.2em;font-weight:600}
 .empty{color:#aab4bf}
 #top3:empty{display:none}
 #top3 ol{padding:0;margin:0;list-style:none;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
@@ -171,9 +178,56 @@ const CLAIM_SCRIPT = `(function () {
   }
 })();`;
 
+// Runs in the visitor's browser, only while the contact form can be used. The claim code
+// leaves the browser only here, and only when the visitor presses Save. It reads the code
+// the claim script put on the page, and shows the form only with a code and until the
+// deadline (the server checks the deadline too).
+const CONTACT_SCRIPT = `(function () {
+  var id = document.body.getAttribute("data-id");
+  var code = document.getElementById("claim").hidden ? "" : document.getElementById("claim-code").textContent;
+  var form = document.getElementById("contact-form");
+  if (!form || !/^\\d{4}$/.test(code)) return;
+  var left = Date.parse(form.getAttribute("data-contact-until")) - Date.now();
+  if (!(left > 0)) return;
+  form.hidden = false;
+  setTimeout(function () { form.hidden = true; }, left);
+  var msg = document.getElementById("contact-msg");
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var btn = form.querySelector("button");
+    btn.disabled = true;
+    fetch("/api/claim", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id: id, code: code, contact: document.getElementById("contact").value })
+    }).then(function (res) {
+      return res.json().catch(function () { return {}; }).then(function (body) {
+        msg.textContent = res.ok ? "Saved. If you win, we'll be in touch after 6:30pm."
+          : (body.error || "Couldn't save \\u2014 try again");
+      });
+    }, function () {
+      msg.textContent = "Couldn't save \\u2014 try again";
+    }).then(function () { btn.disabled = false; });
+  });
+})();`;
+
+function contactForm(img: ImageRow): string {
+  const until = contactDeadline(img.created_at);
+  if (until === null || Date.now() >= until.getTime()) return "";
+  return `<form class="contact" id="contact-form" data-contact-until="${until.toISOString()}" hidden>
+<h2>Won&#39;t be here at 6pm?</h2>
+<p>Leave an email or mobile number and we&#39;ll send the prize to you if you win.</p>
+<input id="contact" name="contact" type="text" inputmode="email" autocomplete="email" maxlength="100" required aria-label="Email or mobile number" placeholder="Email or mobile number">
+<button class="btn" type="submit">Save</button>
+<p class="note">Under 16? Use a parent's or caregiver's details. We only use this to send the prize, and delete it after the event.</p>
+<p class="contact-msg" id="contact-msg" role="status"></p>
+</form>`;
+}
+
 export function renderImagePage(img: ImageRow): string {
   const id = escapeHtml(img.id);
   const prompt = escapeHtml(img.prompt);
+  const form = contactForm(img);
   return layout(
     `<h1>${prompt}</h1>
 <img src="/img/${id}.jpg" alt="${prompt}" loading="lazy" width="1024" height="1024">
@@ -182,12 +236,14 @@ export function renderImagePage(img: ImageRow): string {
 <strong class="code" id="claim-code"></strong>
 <p>Keep this! If your picture wins, show it at the stall before 6:30pm.</p>
 </div>
+${form}
 <div class="actions">
 <a class="btn" href="/img/${id}.jpg" download>Download</a>
 ${voteButton(img.id)}
 <a class="btn plain" href="/">See the gallery</a>
 </div>`,
     CLAIM_SCRIPT,
+    ...(form ? [CONTACT_SCRIPT] : []),
     VOTE_SCRIPT,
   ).replace("<body>", `<body data-id="${id}">`);
 }

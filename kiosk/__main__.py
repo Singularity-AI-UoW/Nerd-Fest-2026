@@ -39,7 +39,7 @@ from kiosk.studio import Studio
 from kiosk.takehome import build_takehome, picture_qr_svg, signup_qr_svg
 from kiosk.uploader import Uploader
 from kiosk.voice import Voice
-from kiosk.winner import WinnerScreen
+from kiosk.winner import WinnerScreen, fetch_claims
 from kiosk.web.server import Hub, create_app
 
 log = logging.getLogger("kiosk")
@@ -148,8 +148,14 @@ async def run_app(cfg: Config, secrets: Secrets, *, fake: bool, headless: bool, 
                 cfg, secrets, checks, llm, None if fake else http, uploader,
                 None if fake else google, bus, show,
             )
+            async def claims():
+                if fake:
+                    return {}  # no gallery in fake mode
+                return await fetch_claims(http, secrets.gallery_url, secrets.gallery_token)
+
             app = create_app(
-                hub, bus, store, StallControls(show, store, uploader, lambda: slideshow.leaderboard),
+                hub, bus, store,
+                StallControls(show, store, uploader, lambda: slideshow.leaderboard, claims=claims),
                 check_runner=make_runner(preflight, fake=fake),
             )
             server = uvicorn.Server(
@@ -174,7 +180,7 @@ async def run_app(cfg: Config, secrets: Secrets, *, fake: bool, headless: bool, 
                 key_input.start()  # ValueError for a bad key name; other failures only warn
 
             winner = WinnerScreen(
-                cfg.voting.close_at, slideshow, hub,
+                cfg.voting.close_at, slideshow, hub, store,
                 is_idle=lambda: show.state == "idle" and not show.paused and show.online,
             )
             health = Health(
