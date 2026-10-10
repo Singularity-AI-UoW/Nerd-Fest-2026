@@ -39,6 +39,11 @@ def _signup_qr(path: Path) -> str | None:
         return None
 
 
+def signup_qr_svg(cfg: Config) -> str | None:
+    """The club sign-up QR as inline SVG, or None if its file is missing."""
+    return _signup_qr(repo_path(cfg.files.signup_qr))
+
+
 def build_takehome(rec: ImageRecord, cfg: Config, secrets: Secrets) -> dict:
     msg = {
         "type": "takehome",
@@ -46,7 +51,7 @@ def build_takehome(rec: ImageRecord, cfg: Config, secrets: Secrets) -> dict:
         "claim": rec.claim_code,
         "qr_svg": qr_svg(image_page_url(secrets.gallery_url, rec.id, rec.claim_code)),
     }
-    signup = _signup_qr(repo_path(cfg.files.signup_qr))
+    signup = signup_qr_svg(cfg)
     if signup is not None:
         msg["signup_qr_svg"] = signup
     return msg

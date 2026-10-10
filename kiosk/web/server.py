@@ -26,13 +26,14 @@ class Controls(Protocol):
 
 
 class Hub:
-    """Fans messages out to every connected page. The last `state` and `status`
-    messages are kept and replayed to pages that connect later."""
+    """Fans messages out to every connected page. The last `state`, `status` and
+    `slideshow` messages are kept and replayed to pages that connect later."""
 
     def __init__(self) -> None:
         self.clients: set = set()
         self.last_state: dict = {}
         self.last_status: dict = {}
+        self.last_slideshow: dict = {}
 
     async def send(self, msg: dict) -> None:
         kind = msg.get("type")
@@ -40,6 +41,8 @@ class Hub:
             self.last_state = msg
         elif kind == "status":
             self.last_status = msg
+        elif kind == "slideshow":
+            self.last_slideshow = msg
         for ws in list(self.clients):
             await self._send_one(ws, msg)
 
@@ -57,6 +60,8 @@ class Hub:
             await self._send_one(ws, self.last_state)
         if self.last_status:
             await self._send_one(ws, self.last_status)
+        if self.last_slideshow:
+            await self._send_one(ws, self.last_slideshow)
 
 
 class TypedBody(BaseModel):

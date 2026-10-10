@@ -264,8 +264,8 @@ class Show:
             narrate=self._narrate, on_tool=self._on_tool, choose_tweak=self._choose_tweak,
         )
         if self.mode == "nerd":
-            model = self.images.model
-            await self.hub.send({"type": "prompt", "text": job.image_prompt, "model": model})
+            await self.hub.send({"type": "prompt", "text": job.image_prompt,
+                                 "model": self.images.model, "llm": self._llm_name()})
         try:
             result = await self._run_agents(job, ctx)
         except ImageBlocked:
@@ -280,6 +280,12 @@ class Show:
             return "idle"
         await self._deliver(result)
         return "takehome"
+
+    def _llm_name(self) -> str:
+        """The LLM that will run this turn's agent, for the nerd panel."""
+        if self.scripted_only:
+            return "scripted"
+        return getattr(getattr(self.llm_agent, "llm", None), "active", None) or "scripted"
 
     async def _run_agents(self, job: Job, ctx: ToolContext) -> AgentResult:
         cap = self.cfg.timeouts.agent_cap_s

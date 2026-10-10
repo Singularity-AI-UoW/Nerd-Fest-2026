@@ -96,6 +96,13 @@ class Store:
         rows = self._query(f"SELECT {_COLS} FROM images ORDER BY created_at DESC, rowid DESC LIMIT 1")
         return _to_record(rows[0]) if rows else None
 
+    def recent(self, limit: int) -> list[ImageRecord]:
+        """The newest records first, at most `limit`."""
+        rows = self._query(
+            f"SELECT {_COLS} FROM images ORDER BY created_at DESC, rowid DESC LIMIT ?", (max(limit, 0),)
+        )
+        return [_to_record(r) for r in rows]
+
     def pending_uploads(self) -> list[ImageRecord]:
         rows = self._query(f"SELECT {_COLS} FROM images WHERE uploaded = 0 ORDER BY created_at, rowid")
         return [_to_record(r) for r in rows]

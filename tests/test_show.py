@@ -255,13 +255,48 @@ async def test_double_tap_selects_nerd_and_sends_prompt_and_tool_messages(tmp_pa
     ])
     assert {"type": "state", "state": "listen", "mode": "nerd"} in hub.msgs
     assert h.safety.requests == [("a robot", "nerd")]
-    assert hub.of("prompt") == [{"type": "prompt", "text": PROMPT, "model": FakeImages.model}]
+    # The harness LLM is a FakeLlm with no `active` name, so the LLM shows as "scripted".
+    assert hub.of("prompt") == [
+        {"type": "prompt", "text": PROMPT, "model": FakeImages.model, "llm": "scripted"}
+    ]
     tools = hub.of("tool")
     assert [t["name"] for t in tools] == ["open_studio", "type_prompt", "generate_image",
                                          "offer_tweaks", "finish"]
     assert tools[1]["args"]["text"] == PROMPT
     assert "LLM finish" in hub.texts("narration")
     assert h.uploader.recs[0].mode == "nerd"
+
+
+class NamedLlm(FakeLlm):
+    active = "fake-active-llm"
+
+
+async def test_nerd_mode_sends_prompt_with_models(tmp_path):
+    h = Harness(tmp_path, llm=NamedLlm(happy_script()))
+    hub = await drive(h, [
+        Event("taps", n=1), "choose_mode", Event("taps", n=2), "listen", typed("a robot"),
+    ])
+    assert hub.of("prompt") == [
+        {"type": "prompt", "text": PROMPT, "model": FakeImages.model, "llm": "fake-active-llm"}
+    ]
+
+
+async def test_nerd_prompt_says_scripted_when_llm_is_skipped(tmp_path):
+    h = Harness(tmp_path, llm=NamedLlm(happy_script()), safety=FakeSafety([LlmUnavailable("down")]))
+    hub = await drive(h, [
+        Event("taps", n=1), "choose_mode", Event("taps", n=2), "listen", typed("a robot"),
+    ])
+    assert [m["llm"] for m in hub.of("prompt")] == ["scripted"]
+
+
+async def test_kid_mode_sends_no_tool_messages(tmp_path):
+    h = Harness(tmp_path, llm=NamedLlm(happy_script()))
+    hub = await drive(h, [
+        Event("hold_start"), "choose_mode", Event("hold_end"), "listen", typed("a robot"),
+    ])
+    assert {"type": "state", "state": "listen", "mode": "kid"} in hub.msgs
+    assert hub.of("tool") == [] and hub.of("prompt") == []
+    assert h.uploader.recs[0].mode == "kid"
 
 
 async def test_voice_path_uses_transcript(tmp_path):

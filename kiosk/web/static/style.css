@@ -58,14 +58,63 @@ body.tv { overflow: hidden; }
 #step-prompt { white-space: pre-wrap; font-size: 84px; font-weight: 800; line-height: 1.15; color: var(--orange); }
 #offline { font-size: 150px; font-weight: 800; color: var(--purple); }
 
-#slideshow img, #winner > img {
+#winner > img {
   width: 100%;
   height: 100%;
   object-fit: contain;
   background: #000;
 }
 
-#slideshow .empty { font-size: 72px; font-weight: 800; color: var(--orange); }
+/* Idle slideshow: fills the whole width while it shows (the side column is empty then). */
+body.idle-wide .stage { grid-column: 1 / 3; }
+body.idle-wide .side { display: none; }
+
+#slideshow { padding: 0; }
+#slideshow .slide { position: relative; width: 100%; height: 100%; background: #000; }
+#slideshow .slide img { width: 100%; height: 100%; object-fit: contain; animation: fade-in 0.6s ease; }
+#slideshow .slide .caption {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  padding: 90px 80px 28px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0));
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+#slideshow .empty { text-align: center; }
+#slideshow .empty-big { font-size: 150px; font-weight: 800; color: var(--orange); line-height: 1.1; }
+#slideshow .empty-small { font-size: 84px; font-weight: 800; color: var(--purple); margin-top: 24px; }
+
+.top3-card { width: 100%; height: 100%; padding: 28px 60px; display: flex; flex-direction: column; gap: 20px; background: var(--panel-2); animation: fade-in 0.6s ease; }
+.top3-title { font-size: 84px; font-weight: 800; color: var(--orange); text-align: center; }
+.top3-row { flex: 1; min-height: 0; display: flex; gap: 32px; justify-content: center; }
+.top3-tile { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.top3-tile img { flex: 1; min-height: 0; max-width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 16px; background: #000; }
+.top3-votes { font-size: 48px; font-weight: 800; color: var(--green); }
+.top3-prompt { font-size: 32px; line-height: 1.2; min-height: 2.4em; text-align: center; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* Club sign-up QR, top right corner of the idle slideshow. */
+.stage > #idle-signup {
+  inset: 24px 24px auto auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 12px 8px;
+  background: rgba(18, 10, 31, 0.85);
+  border-radius: 16px;
+}
+#idle-signup .qr { width: 220px; height: 220px; padding: 8px; }
+#idle-signup .qr-label { font-size: 36px; }
+
+body.top3-on #idle-signup { display: none; } /* the card needs the whole width */
+
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 
 #winner {
   display: flex;
@@ -113,8 +162,9 @@ body.tv { overflow: hidden; }
 #caption { font-size: 56px; font-weight: 700; line-height: 1.2; }
 #caption.partial { color: var(--muted); }
 #narration { font-size: 48px; line-height: 1.25; color: var(--orange); font-weight: 600; }
-#nerd { font-size: 40px; line-height: 1.25; color: var(--muted); }
-#nerd .tool { color: var(--green); }
+#nerd { font-size: 30px; line-height: 1.25; color: var(--muted); overflow: hidden; overflow-wrap: anywhere; }
+#nerd > div { margin-bottom: 8px; }
+#nerd .tool { color: var(--green); font-weight: 700; }
 #tweaks { margin: 0; padding: 0; list-style: none; font-size: 52px; font-weight: 700; }
 #tweaks li { margin-bottom: 14px; }
 #tweaks li span { color: var(--orange); margin-right: 16px; }

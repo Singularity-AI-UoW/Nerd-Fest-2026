@@ -142,6 +142,15 @@ def test_new_ws_gets_last_state(client, parts):
         assert ws.receive_json() == state
 
 
+def test_new_ws_gets_last_slideshow(client, parts):
+    show = {"type": "slideshow", "images": [{"url": "/a.jpg", "prompt": "a"}], "top3": []}
+    client.portal.call(parts[0].send, show)
+    client.portal.call(parts[0].send, {"type": "slideshow", "images": [], "top3": []})
+    client.portal.call(parts[0].send, show)
+    with client.websocket_connect("/ws") as ws:
+        assert ws.receive_json() == show
+
+
 def test_new_ws_gets_last_status_too(client, parts):
     status = {"type": "status", "services": {}, "llm": "primary", "paused": False, "queue": 0}
     client.portal.call(parts[0].send, status)
@@ -229,6 +238,12 @@ def test_tv_uses_exact_visitor_strings(client):
     for s in ["Hold for kid mode, press twice for nerd mode", "Hold the button and talk",
               "Press to go, hold to try again", "Back soon",
               "Winner: show your claim code at the stall", "Press the big button!"]:
+        assert s in text, s
+
+
+def test_tv_idle_screen_contract(client):
+    text = client.get("/tv").text + client.get("/static/tv.js").text
+    for s in ["Top 3 so far", "Be the first!", 'id="idle-signup"', "signup_qr_svg"]:
         assert s in text, s
 
 

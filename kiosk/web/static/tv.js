@@ -12,7 +12,9 @@
   var STEP_STATES = ["choose_mode", "listen", "confirm"];
   var STUDIO_STATES = ["agent", "tweak"];
   var NEW_VISITOR_STATES = ["idle", "choose_mode"];
-  var SLIDE_MS = 6000;
+  var SLIDE_MS = 5000;
+  var TOP3_EVERY = 4; // every 4th slide is the "Top 3 so far" card
+  var MAX_TOOLS = 7;
   var NOTICE_MS = 8000;
   var WINNER_MS = 20000;
 
@@ -21,8 +23,8 @@
 
   var st = {
     state: "", mode: "", captionText: "", captionFinal: false, narration: "", tweaks: [],
-    tool: null, prompt: null, slides: [], slideIndex: 0,
-    winnerUntil: 0, notice: "", noticeTimer: null, slideTimer: null
+    tools: [], prompt: null, slides: [], top3: [], signupQr: "", slideIndex: 0, slideCount: 0,
+    slideDrawn: false, winnerUntil: 0, notice: "", noticeTimer: null, slideTimer: null
   };
 
   function showOnly(id) {
@@ -51,6 +53,8 @@
       showOnly("step");
     } else if (s === "idle" && winnerOn) showOnly("winner");
     else showOnly("slideshow");
+    $("idle-signup").hidden = $("slideshow").hidden || !st.signupQr;
+    document.body.classList.toggle("idle-wide", !$("slideshow").hidden);
     renderSlide();
 
     // footer
@@ -91,8 +95,14 @@
     box.textContent = "";
     var parts = [];
     if (st.mode === "nerd") {
-      if (st.prompt) parts.push(["Prompt", st.prompt.text + (st.prompt.model ? " (" + st.prompt.model + ")" : "")]);
-      if (st.tool) parts.push(["Tool", st.tool.name + " " + shortJson(st.tool.args)]);
+      if (st.prompt) {
+        parts.push(["Prompt", st.prompt.text]);
+        if (st.prompt.llm) parts.push(["LLM", st.prompt.llm]);
+        if (st.prompt.model) parts.push(["Image model", st.prompt.model]);
+      }
+      st.tools.slice(-MAX_TOOLS).forEach(function (t) {
+        parts.push([t.name, shortJson(t.args)]);
+      });
     }
     parts.forEach(function (p) {
       var line = document.createElement("div");
@@ -115,33 +125,98 @@
   function shortJson(v) {
     if (v == null) return "";
     var s;
+    if (v && typeof v === "object" && !Array.isArray(v)) {
+      v = Object.assign({}, v);
+      delete v.narration; // already shown in the Now box
+    }
     try { s = typeof v === "string" ? v : JSON.stringify(v); } catch (e) { s = ""; }
-    return s.length > 120 ? s.slice(0, 117) + "..." : s;
+    return s.length > 90 ? s.slice(0, 87) + "..." : s;
   }
 
   // ----- slideshow -----
-  function renderSlide() {
+  // The idle screen: pictures with their prompts, every 4th slide the top 3 card.
+  // Pictures that fail to load are dropped from the list.
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text) e.textContent = text;
+    return e;
+  }
+
+  function nextSlide() {
+    st.slideCount += 1;
+    if (st.top3.length && st.slideCount % TOP3_EVERY === 0) return { top3: true };
+    if (!st.slides.length) return null;
+    var slide = st.slides[st.slideIndex % st.slides.length];
+    st.slideIndex = (st.slideIndex + 1) % st.slides.length;
+    return slide;
+  }
+
+  function drawEmpty(box) {
+    var empty = el("div", "empty");
+    empty.appendChild(el("div", "empty-big", "Be the first!"));
+    empty.appendChild(el("div", "empty-small", PROMPTS.idle));
+    box.appendChild(empty);
+  }
+
+  function drawImage(box, slide) {
+    var wrap = el("div", "slide");
+    var img = el("img");
+    img.alt = "";
+    img.onerror = function () {
+      st.slides = st.slides.filter(function (s) { return s !== slide; });
+      if (wrap.isConnected) advanceSlide(); // skip a picture that will not load
+    };
+    img.src = slide.url;
+    wrap.appendChild(img);
+    if (slide.prompt) wrap.appendChild(el("div", "caption", slide.prompt));
+    box.appendChild(wrap);
+  }
+
+  function drawTop3(box) {
+    var card = el("div", "top3-card");
+    card.appendChild(el("div", "top3-title", "Top 3 so far"));
+    var row = el("div", "top3-row");
+    st.top3.forEach(function (t) {
+      var tile = el("div", "top3-tile");
+      var img = el("img");
+      img.alt = "";
+      img.onerror = function () { tile.hidden = true; };
+      img.src = t.url;
+      tile.appendChild(img);
+      tile.appendChild(el("div", "top3-votes", t.votes + (t.votes === 1 ? " vote" : " votes")));
+      if (t.prompt) tile.appendChild(el("div", "top3-prompt", t.prompt));
+      row.appendChild(tile);
+    });
+    card.appendChild(row);
+    box.appendChild(card);
+  }
+
+  function drawSlide(slide) {
     var box = $("slideshow");
-    if (box.hidden) { stopSlides(); return; }
     box.textContent = "";
-    if (!st.slides.length) {
-      var empty = document.createElement("div");
-      empty.className = "empty";
-      empty.textContent = PROMPTS.idle;
-      box.appendChild(empty);
+    st.slideDrawn = true;
+    document.body.classList.toggle("top3-on", !!(slide && slide.top3));
+    if (!slide) drawEmpty(box);
+    else if (slide.top3) drawTop3(box);
+    else drawImage(box, slide);
+  }
+
+  function advanceSlide() {
+    if ($("slideshow").hidden) return;
+    drawSlide(nextSlide());
+  }
+
+  // Called on every render: keep the timer running while the slideshow shows,
+  // and draw once when it first appears (not on every message).
+  function renderSlide() {
+    if ($("slideshow").hidden) {
       stopSlides();
+      st.slideDrawn = false;
       return;
     }
-    var img = document.createElement("img");
-    img.alt = "A picture made at the stall";
-    img.src = st.slides[st.slideIndex % st.slides.length];
-    box.appendChild(img);
-    if (!st.slideTimer && st.slides.length > 1) {
-      st.slideTimer = setInterval(function () {
-        st.slideIndex = (st.slideIndex + 1) % st.slides.length;
-        renderSlide();
-      }, SLIDE_MS);
-    }
+    if (!st.slideDrawn) drawSlide(nextSlide());
+    if (!st.slideTimer) st.slideTimer = setInterval(advanceSlide, SLIDE_MS);
   }
 
   function stopSlides() {
@@ -157,14 +232,14 @@
       if (changed && st.state !== "idle") st.winnerUntil = 0;
       if (NEW_VISITOR_STATES.indexOf(st.state) >= 0) {
         st.captionText = ""; st.captionFinal = false; st.narration = "";
-        st.tweaks = []; st.tool = null; st.prompt = null;
+        st.tweaks = []; st.tools = []; st.prompt = null;
       }
       if (st.state !== "tweak") st.tweaks = [];
     },
     caption: function (m) { st.captionText = m.text || ""; st.captionFinal = !!m.final; },
     narration: function (m) { st.narration = m.text || ""; },
-    tool: function (m) { st.tool = { name: m.name || "", args: m.args }; },
-    prompt: function (m) { st.prompt = { text: m.text || "", model: m.model || "" }; },
+    tool: function (m) { st.tools.push({ name: m.name || "", args: m.args }); },
+    prompt: function (m) { st.prompt = { text: m.text || "", model: m.model || "", llm: m.llm || "" }; },
     image: function (m) {
       // Warm the cache so the take-home card shows the picture straight away.
       if (m.url) { var pre = new Image(); pre.src = m.url; }
@@ -203,11 +278,30 @@
       setTimeout(render, WINNER_MS + 50);
     },
     slideshow: function (m) {
-      st.slides = Array.isArray(m.images) ? m.images.filter(Boolean) : [];
-      st.slideIndex = 0;
-      stopSlides();
+      var slides = (Array.isArray(m.images) ? m.images : []).filter(function (i) {
+        return i && typeof i.url === "string" && i.url;
+      });
+      var top3 = (Array.isArray(m.top3) ? m.top3 : []).filter(function (t) {
+        return t && typeof t.url === "string" && t.url;
+      });
+      var same = key(slides) === key(st.slides) && key(top3) === key(st.top3);
+      st.slides = slides;
+      st.top3 = top3;
+      if (typeof m.signup_qr_svg === "string") {
+        st.signupQr = m.signup_qr_svg;
+        $("idle-signup-qr").innerHTML = st.signupQr; // server-made SVG
+      }
+      if (!same) {
+        st.slideIndex = 0; // a new list starts from the newest picture
+        st.slideCount = 0;
+        st.slideDrawn = false;
+      }
     }
   };
+
+  function key(list) {
+    return list.map(function (i) { return i.url + "|" + (i.votes || 0); }).join(",");
+  }
 
   function onMessage(m) {
     var h = m && handlers[m.type];

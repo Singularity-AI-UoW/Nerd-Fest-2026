@@ -31,9 +31,10 @@ from kiosk.inputs import KeyInput, TapDetector
 from kiosk.llm import make_llm_client
 from kiosk.safety import Safety
 from kiosk.show import Show
+from kiosk.slideshow import Slideshow, local_images_source
 from kiosk.store import Store
 from kiosk.studio import Studio
-from kiosk.takehome import build_takehome
+from kiosk.takehome import build_takehome, signup_qr_svg
 from kiosk.uploader import Uploader
 from kiosk.voice import Voice
 from kiosk.web.server import Hub, create_app
@@ -43,6 +44,7 @@ log = logging.getLogger("kiosk")
 FAKE_GALLERY_URL = "http://gallery.invalid"
 FAKE_IMAGE_DELAY_S = 2.0
 UPLOAD_HTTP_TIMEOUT_S = 30.0  # per gallery request; the image is at most a few hundred KB
+SLIDESHOW_INTERVAL_S = 60.0
 SERVER_START_TIMEOUT_S = 15.0
 SERVER_STOP_TIMEOUT_S = 10.0
 HEADLESS_VIEWPORT = {"width": 1920, "height": 1080}
@@ -111,6 +113,15 @@ async def run_app(cfg: Config, secrets: Secrets, *, fake: bool, headless: bool, 
             voice = Voice(genai.Client(api_key=secrets.google_api_key), cfg.models.stt, bus)
             http = await stack.enter_async_context(httpx.AsyncClient(timeout=UPLOAD_HTTP_TIMEOUT_S))
             uploader = Uploader(store, secrets.gallery_url, secrets.gallery_token, http)
+        slideshow = Slideshow(
+            None if fake else http, secrets.gallery_url, hub, SLIDESHOW_INTERVAL_S,
+            fetch_images=local_images_source(store) if fake else None,
+            signup_qr=lambda: signup_qr_svg(cfg),
+        )
+
+        def takehome(rec):
+            slideshow.refresh_soon()  # the new picture joins the idle slideshow soon
+            return build_takehome(rec, cfg, secrets)
 
         pw = await stack.enter_async_context(async_playwright())
         browser = await _launch_tv_browser(pw, cfg, headless)
@@ -125,7 +136,7 @@ async def run_app(cfg: Config, secrets: Secrets, *, fake: bool, headless: bool, 
                 cfg, bus, hub, store, safety,
                 LlmAgent(llm, cfg.limits.max_tool_calls), ScriptedAgent(),
                 Studio(page), images, uploader, voice,
-                takehome=lambda rec: build_takehome(rec, cfg, secrets),
+                takehome=takehome,
             )
             app = create_app(hub, bus, store, StallControls(show, store, uploader))
             server = uvicorn.Server(
@@ -152,6 +163,7 @@ async def run_app(cfg: Config, secrets: Secrets, *, fake: bool, headless: bool, 
             tasks = [
                 asyncio.create_task(show.run_forever(), name="show"),
                 asyncio.create_task(uploader.run_forever(), name="uploader"),
+                asyncio.create_task(slideshow.run_forever(), name="slideshow"),
             ]
             done, _ = await asyncio.wait(
                 [server_task, *tasks], return_when=asyncio.FIRST_COMPLETED

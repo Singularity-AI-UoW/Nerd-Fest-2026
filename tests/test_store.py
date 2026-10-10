@@ -91,3 +91,14 @@ def test_persists_across_fresh_store_on_same_dir(tmp_path: Path):
     assert s2.last() == got
     assert s2.image_path(rec.id).read_bytes() == b"jpeg"
     assert s2.new_record("next", "kid").claim_code != rec.claim_code
+
+
+def test_recent_is_newest_first_and_limited(store: Store):
+    recs = [store.new_record(f"p{i}", "kid") for i in range(5)]
+    assert [r.id for r in store.recent(3)] == [r.id for r in reversed(recs)][:3]
+    assert len(store.recent(30)) == 5
+    assert store.recent(0) == []
+
+
+def test_recent_empty(store: Store):
+    assert store.recent(30) == []
