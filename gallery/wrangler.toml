@@ -1,0 +1,17 @@
+name = "nerdfest-gallery"
+main = "src/index.ts"
+compatibility_date = "2026-03-01"
+
+[vars]
+VOTE_CLOSE_AT = "2026-10-30T18:00:00+13:00"
+
+# Secret (set with `wrangler secret put UPLOAD_TOKEN`, never committed): UPLOAD_TOKEN
+
+[[d1_databases]]
+binding = "DB"
+database_name = "nerdfest-gallery"
+database_id = "REPLACE_AFTER_d1_create"
+
+[[r2_buckets]]
+binding = "IMAGES"
+bucket_name = "nerdfest-images"
