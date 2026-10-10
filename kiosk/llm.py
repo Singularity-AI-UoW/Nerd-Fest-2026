@@ -110,6 +110,12 @@ class LlmClient:
         )
         return _parse(response, backend.model)
 
+    async def probe(self, which: str, *, instructions: str, input: str) -> LlmResponse:
+        """One call to a single backend ("openrouter" or "fallback"): no retry, no
+        failover, and `active` is left alone. For the preflight checklist. Raises on failure."""
+        backend = {PRIMARY_NAME: self._primary, FALLBACK_NAME: self._fallback}[which]
+        return await self._call(backend, {"instructions": instructions, "input": input})
+
     async def respond(
         self,
         *,

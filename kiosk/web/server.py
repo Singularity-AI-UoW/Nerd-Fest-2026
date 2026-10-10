@@ -4,7 +4,7 @@ from __future__ import annotations
 import asyncio
 import re
 from pathlib import Path
-from typing import Annotated, Protocol
+from typing import Annotated, Awaitable, Callable, Protocol
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
@@ -12,11 +12,15 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, StrictBool, StrictInt, StringConstraints
 
 from kiosk.events import Event, EventBus
+from kiosk.preflight import PREFLIGHT
 from kiosk.store import Store
 
 STATIC_DIR = Path(__file__).parent / "static"
 _IMAGE_ID = re.compile(r"^[a-z2-7]{8}$")
 _SEND_TIMEOUT_S = 2.0
+_CHECK_NAMES = {name for name, _ in PREFLIGHT}
+
+CheckRunner = Callable[[str], Awaitable[dict]]
 
 
 class Controls(Protocol):
@@ -80,7 +84,8 @@ class RemoveBody(BaseModel):
     id: Annotated[str, StringConstraints(pattern=r"^(last|[a-z2-7]{8})$")]
 
 
-def create_app(hub: Hub, bus: EventBus, store: Store, controls: Controls) -> FastAPI:
+def create_app(hub: Hub, bus: EventBus, store: Store, controls: Controls,
+               check_runner: CheckRunner | None = None) -> FastAPI:
     app = FastAPI(title="Nerdfest stall", docs_url=None, redoc_url=None, openapi_url=None)
 
     def page(name: str):
@@ -93,6 +98,10 @@ def create_app(hub: Hub, bus: EventBus, store: Store, controls: Controls) -> Fas
     @app.get("/organiser")
     async def organiser():
         return page("organiser.html")
+
+    @app.get("/check")
+    async def check_page():
+        return page("check.html")
 
     @app.get("/studio")
     async def studio():
@@ -140,6 +149,14 @@ def create_app(hub: Hub, bus: EventBus, store: Store, controls: Controls) -> Fas
     @app.get("/api/winners")
     async def winners():
         return controls.winners()
+
+    @app.post("/api/check/{name}")
+    async def run_one_check(name: str):
+        if name not in _CHECK_NAMES:
+            raise HTTPException(404, "No such check")
+        if check_runner is None:
+            raise HTTPException(503, "Checks are not available")
+        return await check_runner(name)
 
     @app.get("/api/status")
     async def status():

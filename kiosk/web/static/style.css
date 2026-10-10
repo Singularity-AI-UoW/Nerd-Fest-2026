@@ -190,6 +190,7 @@ body.top3-on #idle-signup { display: none; } /* the card needs the whole width *
 /* ---------- Organiser (laptop) ---------- */
 body.organiser { padding: 20px 28px 60px; font-size: 18px; }
 body.organiser h1 { font-size: 32px; margin: 0 0 16px; color: var(--orange); }
+body.organiser h1 a.navlink { font-size: 16px; font-weight: 600; margin-left: 16px; color: var(--purple); }
 body.organiser h2 { font-size: 22px; margin: 0 0 10px; color: var(--purple); }
 .org-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 20px; }
 .card { background: var(--panel); border-radius: 12px; padding: 16px 20px; }

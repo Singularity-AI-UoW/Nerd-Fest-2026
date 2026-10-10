@@ -147,3 +147,21 @@ async def test_fake_llm_pops_script_and_records_calls():
         await fake.respond(instructions="i2", input="q2", tools=[{"t": 1}])
     assert [c["instructions"] for c in fake.calls] == ["i", "i2"]
     assert fake.calls[1]["tools"] == [{"t": 1}]
+
+
+@pytest.mark.parametrize("which,model", [("openrouter", "openrouter-model"), ("fallback", "fallback-model")])
+async def test_probe_calls_one_backend_once_without_failover(which, model):
+    client, pr, fr = make(message("ready"), message("ready"))
+    out = await client.probe(which, instructions="say ready", input="go")
+    assert out.text == "ready" and out.model == model
+    called, other = (pr, fr) if which == "openrouter" else (fr, pr)
+    assert len(called.calls) == 1 and other.calls == []
+    assert called.calls[0]["store"] is False and called.calls[0]["timeout"] == 7
+    assert client.active == "openrouter"  # a probe never changes the active backend
+
+
+async def test_probe_raises_instead_of_failing_over():
+    client, pr, fr = make(RuntimeError("boom"))
+    with pytest.raises(RuntimeError):
+        await client.probe("openrouter", instructions="x", input="y")
+    assert len(pr.calls) == 1 and fr.calls == []

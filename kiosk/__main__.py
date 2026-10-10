@@ -30,6 +30,7 @@ from kiosk.health import Health, fake_checks, make_checks
 from kiosk.images import make_image_service
 from kiosk.inputs import KeyInput, TapDetector
 from kiosk.llm import make_llm_client
+from kiosk.preflight import PreflightDeps, make_runner
 from kiosk.safety import Safety
 from kiosk.show import Show
 from kiosk.slideshow import Slideshow, local_images_source
@@ -141,7 +142,15 @@ async def run_app(cfg: Config, secrets: Secrets, *, fake: bool, headless: bool, 
                 Studio(page), images, uploader, voice,
                 takehome=takehome,
             )
-            app = create_app(hub, bus, store, StallControls(show, store, uploader, lambda: slideshow.leaderboard))
+            checks = fake_checks() if fake else make_checks(cfg, secrets, http, google)
+            preflight = PreflightDeps(
+                cfg, secrets, checks, llm, None if fake else http, uploader,
+                None if fake else google, bus, show,
+            )
+            app = create_app(
+                hub, bus, store, StallControls(show, store, uploader, lambda: slideshow.leaderboard),
+                check_runner=make_runner(preflight, fake=fake),
+            )
             server = uvicorn.Server(
                 uvicorn.Config(app, host="127.0.0.1", port=port, log_level="warning")
             )
@@ -168,7 +177,7 @@ async def run_app(cfg: Config, secrets: Secrets, *, fake: bool, headless: bool, 
                 is_idle=lambda: show.state == "idle" and not show.paused and show.online,
             )
             health = Health(
-                fake_checks() if fake else make_checks(cfg, secrets, http, google),
+                checks,
                 hub, lambda ok: setattr(show, "online", ok),
                 llm_active=lambda: getattr(llm, "active", None) or getattr(llm, "model", None),
                 is_paused=lambda: show.paused, queue_size=uploader.queue_size,
