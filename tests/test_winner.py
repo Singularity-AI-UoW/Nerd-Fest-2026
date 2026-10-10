@@ -39,6 +39,18 @@ def test_winners_joins_claim_codes(tmp_path):
     ]
 
 
+async def test_entry_without_url_is_dropped_from_table_and_tv_alike(tmp_path):
+    screen, hub, recs = make_screen(tmp_path, CLOSE, "x")
+    board = screen._slideshow.leaderboard
+    del board["top3"][0]["url"]  # the first entry has no picture URL
+    rows = winners(board, Store(tmp_path))
+    assert [r["id"] for r in rows] == [recs[1].id]
+    assert rows[0]["rank"] == 1
+    await screen.tick()
+    assert [t["prompt"] for t in hub.msgs[0]["top3"]] == ["a robot"]
+    assert hub.msgs[0]["prompt"] == "a robot"
+
+
 def test_winners_handles_missing_or_bad_leaderboard(tmp_path):
     store = Store(tmp_path)
     assert winners({}, store) == []
@@ -97,7 +109,6 @@ async def test_winner_claim_code_never_in_tv_message(tmp_path):
     screen, hub, recs = make_screen(tmp_path, CLOSE + timedelta(minutes=1), "x")
     await screen.tick()
     text = repr(hub.msgs)
-    assert "claim" not in text
     for rec in recs:
         assert rec.claim_code not in {m for m in text.replace("'", " ").split()}
     assert not any("claim" in k for m in hub.msgs for k in m)

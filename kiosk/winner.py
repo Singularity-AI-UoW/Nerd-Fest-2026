@@ -19,10 +19,15 @@ WINNER_EVERY_S = 30.0  # the TV shows the card for 20 s, then the slideshow, so 
 
 
 def _top3(leaderboard: dict | None) -> list[dict]:
+    """The usable entries (an id and a picture URL). The organiser table and the TV both use this."""
     items = leaderboard.get("top3") if isinstance(leaderboard, dict) else None
     if not isinstance(items, list):
         return []
-    return [i for i in items if isinstance(i, dict) and isinstance(i.get("id"), str) and i["id"]]
+    return [
+        i for i in items
+        if isinstance(i, dict) and isinstance(i.get("id"), str) and i["id"]
+        and isinstance(i.get("url"), str) and i["url"]
+    ]
 
 
 def winners(leaderboard: dict | None, store: Store) -> list[dict]:
@@ -68,7 +73,7 @@ class WinnerScreen:
         entries = [
             {"url": self._slideshow.absolute_url(i["url"]), "prompt": str(i.get("prompt") or ""),
              "votes": i["votes"] if isinstance(i.get("votes"), int) else 0}
-            for i in _top3(board) if isinstance(i.get("url"), str) and i["url"]
+            for i in _top3(board)
         ]
         if not entries:
             return None
