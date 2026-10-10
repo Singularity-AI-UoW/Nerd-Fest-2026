@@ -84,3 +84,26 @@ def _draw_jpeg(text: str) -> bytes:
     out = io.BytesIO()
     img.save(out, format="JPEG", quality=85)
     return out.getvalue()
+
+
+class FakeStudio:
+    """Stand-in for Studio. Records every call in order as a tuple:
+    ("open",), ("type", text), ("click_generate",), ("show_image", jpeg), ("reset",)."""
+
+    def __init__(self):
+        self.calls: list[tuple] = []
+
+    async def open(self) -> None:
+        self.calls.append(("open",))
+
+    async def type(self, text: str, delay_ms: int = 35) -> None:
+        self.calls.append(("type", text))
+
+    async def click_generate(self) -> None:
+        self.calls.append(("click_generate",))
+
+    async def show_image(self, jpeg: bytes) -> None:
+        self.calls.append(("show_image", jpeg))
+
+    async def reset(self) -> None:
+        self.calls.append(("reset",))
