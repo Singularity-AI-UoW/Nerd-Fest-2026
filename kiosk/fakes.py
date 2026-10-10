@@ -107,3 +107,19 @@ class FakeStudio:
 
     async def reset(self) -> None:
         self.calls.append(("reset",))
+
+
+class FakeVoice:
+    """Stand-in for Voice. stop() returns the next transcript from the list
+    given at construction, or "" once it runs out. Records "start"/"stop" calls."""
+
+    def __init__(self, transcripts: list[str] | None = None):
+        self._transcripts = list(transcripts or [])
+        self.calls: list[str] = []
+
+    async def start(self) -> None:
+        self.calls.append("start")
+
+    async def stop(self) -> str:
+        self.calls.append("stop")
+        return self._transcripts.pop(0) if self._transcripts else ""
