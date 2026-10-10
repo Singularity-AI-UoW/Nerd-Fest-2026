@@ -7,6 +7,7 @@ data, never inside the instructions.
 """
 from __future__ import annotations
 
+import itertools
 import json
 import logging
 from dataclasses import dataclass
@@ -17,6 +18,13 @@ from kiosk.llm import LlmUnavailable
 log = logging.getLogger(__name__)
 
 TWEAK_COUNT = 4
+# Used only if no preset tweaks are configured.
+DEFAULT_PRESET_TWEAKS = [
+    "Add a rainbow",
+    "Make it a starry night",
+    "Add a friendly kiwi",
+    "Make it snowy",
+]
 CHECK_FAILED = "check failed"
 BLOCKED_REASON = "not allowed"
 
@@ -95,7 +103,10 @@ class Safety:
         self._blocklist = blocklist
         self._llm = llm
         self._max_chars = max_request_chars
-        self._presets = list(preset_tweaks)
+        # Always exactly TWEAK_COUNT presets: cycle short lists, trim long ones, and
+        # fall back to the built-in defaults if none are configured.
+        source = list(preset_tweaks) or DEFAULT_PRESET_TWEAKS
+        self._presets = list(itertools.islice(itertools.cycle(source), TWEAK_COUNT))
 
     async def check_request(self, text: str, mode: str) -> SafetyResult:
         """Check a visitor request. Raises LlmUnavailable if both LLMs are down."""
@@ -162,7 +173,7 @@ class Safety:
             log.warning("Tweak check returned an unusable answer")
             return list(self._presets)
 
-        replacements = iter(self._presets)
+        replacements = iter(self._presets)  # TWEAK_COUNT items, so never exhausted
         result = []
         for slot, ok in zip(slots, safe):
             result.append(slot if slot and ok else next(replacements))

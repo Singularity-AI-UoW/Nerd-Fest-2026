@@ -138,3 +138,28 @@ async def test_check_tweaks_llm_down_returns_presets(bl):
 async def test_check_tweaks_malformed_returns_presets(bl, text):
     safety, _ = make(bl, [LlmResponse(text=text)])
     assert await safety.check_tweaks(["a", "b", "c", "d"]) == PRESETS
+
+
+async def test_check_tweaks_short_presets_cycle_no_exception(bl):
+    safety = Safety(bl, FakeLlm([reply(safe=[True, False, False, False])]), 200, ["only preset"])
+    out = await safety.check_tweaks(["a", "b", "c", "d"])
+    assert out == ["a", "only preset", "only preset", "only preset"]
+
+
+async def test_check_tweaks_long_presets_llm_down_returns_exactly_four(bl):
+    presets = [f"p{i}" for i in range(6)]
+    safety = Safety(bl, FakeLlm([LlmUnavailable("down")]), 200, presets)
+    assert await safety.check_tweaks(["a", "b", "c", "d"]) == presets[:4]
+
+
+async def test_check_tweaks_no_presets_uses_defaults(bl):
+    safety = Safety(bl, FakeLlm([]), 200, [])
+    out = await safety.check_tweaks(["bomb", "kill", "poop", "bomb"])
+    assert len(out) == 4 and all(out)
+
+
+async def test_check_tweaks_long_presets_all_blocklisted_and_malformed_exactly_four(bl):
+    presets = [f"p{i}" for i in range(6)]
+    safety = Safety(bl, FakeLlm([LlmResponse(text="nope")]), 200, presets)
+    assert await safety.check_tweaks(["bomb", "kill", "poop", "bomb"]) == presets[:4]
+    assert await safety.check_tweaks(["a", "b", "c", "d"]) == presets[:4]
