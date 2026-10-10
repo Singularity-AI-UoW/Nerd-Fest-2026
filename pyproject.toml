@@ -28,4 +28,7 @@ dev = [
 asyncio_mode = "auto"
 pythonpath = ["."]
 testpaths = ["tests"]
-markers = ["browser: drives a real headless Chromium (skipped if Chromium is not installed)"]
+markers = [
+    "browser: drives a real headless Chromium (skipped if Chromium is not installed)",
+    "live: calls a real paid API (skipped unless KIOSK_LIVE=1)",
+]

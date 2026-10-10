@@ -17,6 +17,7 @@ import webbrowser
 
 import httpx
 import uvicorn
+from google import genai
 from playwright.async_api import BrowserContext, async_playwright
 
 from kiosk.agent import LlmAgent, ScriptedAgent
@@ -34,6 +35,7 @@ from kiosk.store import Store
 from kiosk.studio import Studio
 from kiosk.takehome import build_takehome
 from kiosk.uploader import Uploader
+from kiosk.voice import Voice
 from kiosk.web.server import Hub, create_app
 
 log = logging.getLogger("kiosk")
@@ -106,7 +108,7 @@ async def run_app(cfg: Config, secrets: Secrets, *, fake: bool, headless: bool, 
                 log.warning("GALLERY_URL or GALLERY_TOKEN is not set: uploads will keep retrying")
             llm = make_llm_client(cfg, secrets)
             images = make_image_service(cfg, secrets)
-            voice = FakeVoice()  # no microphone input yet: typed requests only
+            voice = Voice(genai.Client(api_key=secrets.google_api_key), cfg.models.stt, bus)
             http = await stack.enter_async_context(httpx.AsyncClient(timeout=UPLOAD_HTTP_TIMEOUT_S))
             uploader = Uploader(store, secrets.gallery_url, secrets.gallery_token, http)
 
