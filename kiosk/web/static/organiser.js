@@ -52,6 +52,22 @@
     });
   });
 
+  var STEP_TEXT = { kid: "Kid mode", nerd: "Nerd mode", go: "Going ahead", retry: "Trying again", next: "Next visitor" };
+  document.querySelectorAll("button[data-step]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      post("/api/step", { action: b.dataset.step }, STEP_TEXT[b.dataset.step]);
+    });
+  });
+
+  // Only the current step's buttons are enabled (the show ignores the others anyway).
+  function renderSteps(state) {
+    document.querySelectorAll(".step-group").forEach(function (g) {
+      var on = g.dataset.state === state;
+      g.classList.toggle("current", on);
+      g.querySelectorAll("button").forEach(function (b) { b.disabled = !on; });
+    });
+  }
+
   $("pause").addEventListener("click", function () {
     var want = !paused;
     post("/api/pause", { paused: want }, want ? "Paused: the current visitor finishes first" : "Resumed")
@@ -186,6 +202,7 @@
       $("mode").textContent = m.mode || "-";
       holdingOffline = m.state === "offline";
       renderBanner();
+      renderSteps(m.state);
     },
     status: renderStatus,
     log: function (m) { addLog(m.text || ""); },
@@ -207,6 +224,7 @@
   }
 
   setPaused(false);
+  renderSteps("");
   loadWinners();
   setInterval(loadWinners, WINNERS_REFRESH_MS);
   connect();

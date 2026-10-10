@@ -4,7 +4,7 @@ from __future__ import annotations
 import asyncio
 import re
 from pathlib import Path
-from typing import Annotated, Awaitable, Callable, Protocol
+from typing import Annotated, Awaitable, Callable, Literal, Protocol
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
@@ -76,6 +76,10 @@ class TweakBody(BaseModel):
     n: Annotated[StrictInt, Field(ge=0, le=4)]
 
 
+class StepBody(BaseModel):
+    action: Literal["kid", "nerd", "go", "retry", "next"]
+
+
 class PauseBody(BaseModel):
     paused: StrictBool
 
@@ -135,6 +139,11 @@ def create_app(hub: Hub, bus: EventBus, store: Store, controls: Controls,
     @app.post("/api/tweak")
     async def tweak(body: TweakBody):
         bus.put(Event("tweak_choice", n=body.n))
+        return {"ok": True}
+
+    @app.post("/api/step")
+    async def step(body: StepBody):
+        bus.put(Event("step", text=body.action))
         return {"ok": True}
 
     @app.post("/api/pause")

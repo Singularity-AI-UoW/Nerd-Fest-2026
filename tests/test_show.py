@@ -36,8 +36,6 @@ STEP_TIMEOUT_S = 2.0
 def make_cfg(**timeouts):
     base = load_config(Path(__file__).resolve().parents[1] / "config.toml")
     fast = {f.name: 0.05 for f in fields(Timeouts)}
-    # The agent cap covers the visitor's tweak wait, so it must be longer than
-    # tweak_s or every LLM run would hit the cap during the tweak.
     fast["agent_cap_s"] = 1.0
     fast.update(timeouts)
     return replace(base, timeouts=replace(base.timeouts, **fast))
@@ -248,6 +246,19 @@ async def test_hold_selects_kid(tmp_path):
     assert {"type": "state", "state": "listen", "mode": "kid"} in hub.msgs
 
 
+@pytest.mark.parametrize("action", ["kid", "nerd"])
+async def test_organiser_chooses_mode(tmp_path, action):
+    h = Harness(tmp_path, cfg=make_cfg(choose_mode_s=5))
+    hub = await drive(h, [Event("taps", n=1), "choose_mode", Event("step", text=action), "listen"])
+    assert {"type": "state", "state": "listen", "mode": action} in hub.msgs
+
+
+async def test_choose_mode_ignores_other_organiser_steps(tmp_path):
+    h = Harness(tmp_path, cfg=make_cfg(choose_mode_s=0.2))
+    hub = await drive(h, [Event("taps", n=1), "choose_mode", Event("step", text="next"), "listen"])
+    assert {"type": "state", "state": "listen", "mode": "kid"} in hub.msgs  # the safety net
+
+
 async def test_double_tap_selects_nerd_and_sends_prompt_and_tool_messages(tmp_path):
     h = Harness(tmp_path)
     hub = await drive(h, [
@@ -364,6 +375,22 @@ async def test_confirm_hold_records_again(tmp_path):
     assert h.safety.requests == [("a dragon", "kid")]
 
 
+async def test_organiser_go_confirms(tmp_path):
+    h = Harness(tmp_path, cfg=make_cfg(confirm_s=5))
+    hub = await drive(h, [typed("a dragon"), "confirm", Event("step", text="go"), "filter"])
+    assert h.safety.requests == [("a dragon", "kid")]
+    assert hub.states()[-1] == "takehome"
+
+
+async def test_organiser_retry_records_again(tmp_path):
+    h = Harness(tmp_path, cfg=make_cfg(confirm_s=5), transcripts=["a dragon"])
+    await drive(h, [typed("a dragn"), "confirm", Event("step", text="retry"), "listen",
+                    Event("hold_end"), "confirm", Event("step", text="go")])
+    # retry starts recording at once, like the visitor's hold.
+    assert h.voice.calls == ["start", "stop"]
+    assert h.safety.requests == [("a dragon", "kid")]
+
+
 async def test_blocked_twice_uses_preset_idea(tmp_path):
     h = Harness(tmp_path, safety=FakeSafety([BLOCKED, BLOCKED]))
     hub = await drive(h, [typed("bad one"), MSG_SORRY, "listen", typed("bad two")])
@@ -391,6 +418,33 @@ async def test_agent_timeout_falls_back_to_scripted(tmp_path):
     assert hub.texts("narration")[0] == FIXED_NARRATION["open_studio"]
     assert h.images.calls[0]["prompt"] == PROMPT
     assert len(h.uploader.recs) == 1
+
+
+async def test_agent_cap_pauses_while_the_visitor_picks_a_tweak(tmp_path):
+    # The tweak wait is longer than the whole cap, yet the LLM agent finishes the turn.
+    h = Harness(tmp_path, cfg=make_cfg(agent_cap_s=0.3, tweak_s=0.6))
+    hub = await drive(h, [typed("a dragon")])
+    assert "LLM finish" in hub.texts("narration")
+    assert FIXED_NARRATION["finish"] not in hub.texts("narration")
+
+
+async def test_agent_cap_still_counts_after_the_tweak(tmp_path):
+    llm = FakeLlm(happy_script()[:4])  # stops answering after offer_tweaks
+    llm.respond = _hang_after(llm.respond, 4)
+    h = Harness(tmp_path, cfg=make_cfg(agent_cap_s=0.3, tweak_s=0.05), llm=llm)
+    hub = await drive(h, [typed("a dragon")])
+    assert FIXED_NARRATION["finish"] in hub.texts("narration")  # scripted agent took over
+    assert len(h.uploader.recs) == 1
+
+
+def _hang_after(respond, n):
+    calls = itertools.count(1)
+
+    async def wrapped(**kwargs):
+        if next(calls) > n:
+            await asyncio.sleep(3600)
+        return await respond(**kwargs)
+    return wrapped
 
 
 async def test_agent_gave_up_falls_back_to_scripted_with_same_ctx(tmp_path):
@@ -459,12 +513,31 @@ async def test_tweak_timeout_keeps(tmp_path):
     assert hub.states()[-1] == "takehome"
 
 
+@pytest.mark.parametrize("event", [Event("taps", n=1), Event("hold_start"), Event("step", text="next")])
+async def test_takehome_ends_on_press_or_organiser(tmp_path, event):
+    h = Harness(tmp_path, cfg=make_cfg(takehome_s=5))
+    loop = asyncio.get_running_loop()
+    start = loop.time()
+    await drive(h, [typed("a dragon"), "takehome", 0.02, event])
+    assert loop.time() - start < 2  # well before the 5 s safety net
+
+
+async def test_takehome_ignores_other_organiser_steps(tmp_path):
+    h = Harness(tmp_path, cfg=make_cfg(takehome_s=0.3))
+    loop = asyncio.get_running_loop()
+    task = asyncio.create_task(h.show.run_visitor())
+    await feed(h, [typed("a dragon"), "takehome", Event("step", text="go")])
+    start = loop.time()
+    await asyncio.wait_for(task, STEP_TIMEOUT_S)
+    assert loop.time() - start > 0.2  # "go" is not a take-home action
+
+
 async def test_events_ignored_outside_expected_state(tmp_path):
     h = Harness(tmp_path, images=FakeImages(delay_s=0.1))
     hub = await drive(h, [
         typed("a dragon"), "agent",
         Event("taps", n=3), Event("hold_start"), Event("taps", n=2),  # during generation
-        "takehome", Event("taps", n=1), Event("hold_start"),  # during take-home
+        "takehome", Event("taps", n=1),  # ends the take-home card
     ])
     assert hub.states() == ["idle", "confirm", "filter", "agent", "tweak", "agent", "takehome"]
     assert [c["kind"] for c in h.images.calls] == ["generate"]  # taps were not a tweak choice

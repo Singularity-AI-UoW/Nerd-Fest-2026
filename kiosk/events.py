@@ -5,7 +5,8 @@ import asyncio
 from dataclasses import dataclass
 
 # kinds: taps (n), hold_start, hold_end, typed_request (text),
-# tweak_choice (n 1-4, 0 = keep), caption (text, partial),
+# tweak_choice (n 1-4, 0 = keep), step (text: kid/nerd/go/retry/next, from the
+# organiser), caption (text, partial),
 # transcript (text, final), stt_error
 
 

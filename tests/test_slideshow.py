@@ -126,6 +126,37 @@ async def test_signup_qr_sent_when_available():
     assert "signup_qr_svg" not in hub.msgs[0]
 
 
+async def test_picture_qr_added_to_pictures_but_not_top3():
+    g = Gallery([gallery_image(2), {"prompt": "no id", "url": "/img/x.jpg"}], [top_entry(2, 4)])
+    s, hub = make(g, picture_qr=lambda id: f"<svg>{id}</svg>")
+    await s.refresh()
+    msg = hub.msgs[0]
+    assert msg["images"] == [
+        {"url": f"{BASE}/img/img00002.jpg", "prompt": "prompt 2", "qr_svg": "<svg>img00002</svg>"},
+        {"url": f"{BASE}/img/x.jpg", "prompt": "no id"},
+    ]
+    assert "qr_svg" not in msg["top3"][0]
+
+
+async def test_odd_ids_get_no_qr():
+    g = Gallery([{**gallery_image(1), "id": "../admin"}, {**gallery_image(2), "id": 7}])
+    s, hub = make(g, picture_qr=lambda id: "<svg/>")
+    await s.refresh()
+    assert ["qr_svg" in i for i in hub.msgs[0]["images"]] == [False, False]
+
+
+async def test_injected_source_gets_picture_qr_by_id():
+    async def source():
+        return [{"id": "abcdefgh", "url": "/local/abcdefgh.jpg", "prompt": "local"}], []
+
+    hub = RecordingHub()
+    s = Slideshow(None, BASE, hub, fetch_images=source, picture_qr=lambda id: f"<svg>{id}</svg>")
+    await s.refresh()
+    assert hub.msgs[0]["images"] == [
+        {"url": "/local/abcdefgh.jpg", "prompt": "local", "qr_svg": "<svg>abcdefgh</svg>"}
+    ]
+
+
 async def test_injected_source_replaces_the_network():
     async def source():
         return [{"url": "/local/abc.jpg", "prompt": "local"}], []
@@ -175,7 +206,7 @@ async def test_local_images_source_uses_store_with_local_urls(tmp_path):
     images, top3 = await local_images_source(store)()
     assert top3 == []
     assert len(images) == 30
-    assert images[0] == {"url": f"/local/{recs[-1].id}.jpg", "prompt": "prompt 34"}
+    assert images[0] == {"id": recs[-1].id, "url": f"/local/{recs[-1].id}.jpg", "prompt": "prompt 34"}
 
 
 async def _until(cond, timeout: float = 2.0) -> None:

@@ -42,7 +42,13 @@ Use the organiser page (`/organiser`).
 - **Status lights.** Green is working. If the gallery and Google are both down, a red banner appears and the TV shows "Back soon". It carries on by itself when they come back.
 - **Pause / Resume.** Pauses between visitors. Use it for breaks.
 - **Type it for the visitor.** If the TV says "Ask the organiser to type it", or a child cannot speak the idea, type it in the box and click Send (up to 200 characters).
-- **Tweak.** The buttons 1 to 4 and Keep choose the tweak if the visitor does not press the button.
+- **Visitor.** The stall waits at four steps until the visitor presses the button. If they are unsure, use these buttons instead. Only the current step's buttons work:
+  - **Mode:** Kid or Nerd.
+  - **I heard…:** Go, or Try again to record again.
+  - **Tweak:** 1 to 4, or Keep.
+  - **Take-home:** Next visitor, once they have scanned their QR code.
+
+  If nobody does anything for 3 minutes, the stall moves on by itself. Pictures also show their QR code on the idle slideshow, so visitors can come back and scan it later. That QR has no claim code in it: only the take-home card shows the claim code.
 - **Remove an image.** **Remove last image** takes down the most recent picture. To remove another, type its 8-character id and click Remove. It is deleted from the gallery as well.
 - **Winners.** After voting closes, the top three appear here with their claim codes. Tick **Claimed** when a prize has been handed over.
 

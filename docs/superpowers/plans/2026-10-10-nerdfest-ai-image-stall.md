@@ -120,7 +120,7 @@ gallery/
 - [ ] **Step 4: Write `config.toml`** with exactly these tables:
   - `[models]`: `llm="openai/gpt-6.1-sol"`, `fallback_llm="Qwen3.8-27B"`, `stt="gemini-3.5-transcribe-live"`, `image="gemini-3.1-flash-lite-image"`, `image_size="1K"`
   - `[button]`: `key="f9"`, `hold_threshold_s=0.4`, `tap_window_s=0.4`
-  - `[timeouts]`: `choose_mode_s=10`, `listen_wait_s=20`, `listen_hold_max_s=15`, `confirm_s=8`, `agent_cap_s=45`, `tweak_s=12`, `takehome_s=15`, `image_call_s=30`, `llm_call_s=15`
+  - `[timeouts]`: `choose_mode_s=180`, `listen_wait_s=20`, `listen_hold_max_s=15`, `confirm_s=180`, `agent_cap_s=45`, `tweak_s=180`, `takehome_s=180`, `image_call_s=30`, `llm_call_s=15`
   - `[limits]`: `max_tool_calls=10`, `max_blocked_tries=2`, `max_request_chars=200`, `max_stt_retries=1`
   - `[voting]`: `close_at="2026-10-30T18:00:00+13:00"`, `claim_until="2026-10-30T18:30:00+13:00"`
   - `[files]`: `blocklist="kiosk/blocklist.txt"`, `signup_qr="sign_up_qr.svg"`, `data_dir="kiosk_data"`

@@ -36,7 +36,7 @@ from kiosk.show import Show
 from kiosk.slideshow import Slideshow, local_images_source
 from kiosk.store import Store
 from kiosk.studio import Studio
-from kiosk.takehome import build_takehome, signup_qr_svg
+from kiosk.takehome import build_takehome, picture_qr_svg, signup_qr_svg
 from kiosk.uploader import Uploader
 from kiosk.voice import Voice
 from kiosk.winner import WinnerScreen
@@ -121,6 +121,7 @@ async def run_app(cfg: Config, secrets: Secrets, *, fake: bool, headless: bool, 
             None if fake else http, secrets.gallery_url, hub, SLIDESHOW_INTERVAL_S,
             fetch_images=local_images_source(store) if fake else None,
             signup_qr=lambda: signup_qr_svg(cfg),
+            picture_qr=lambda id: picture_qr_svg(secrets.gallery_url, id),
         )
 
         def takehome(rec):

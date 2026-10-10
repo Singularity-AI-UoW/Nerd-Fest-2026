@@ -86,6 +86,18 @@ def test_tweak_rejects_bad_n(client, parts, n):
     assert drain(parts[1]) == []
 
 
+@pytest.mark.parametrize("action", ["kid", "nerd", "go", "retry", "next"])
+def test_step_posts_event(client, parts, action):
+    assert client.post("/api/step", json={"action": action}).status_code == 200
+    assert drain(parts[1]) == [Event("step", text=action)]
+
+
+@pytest.mark.parametrize("action", ["", "KID", "stop", 1, None])
+def test_step_rejects_unknown_action(client, parts, action):
+    assert client.post("/api/step", json={"action": action}).status_code == 422
+    assert drain(parts[1]) == []
+
+
 def test_pause_calls_controls(client, parts):
     assert client.post("/api/pause", json={"paused": True}).status_code == 200
     assert client.post("/api/pause", json={"paused": False}).status_code == 200
