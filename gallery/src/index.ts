@@ -1,7 +1,8 @@
 const ID_RE = /^[a-z2-7]{8}$/;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_PROMPT_CHARS = 500;
-// Image plus the small text fields; anything bigger is rejected before parsing.
+// Advisory fast-path only: Content-Length can be omitted or faked. The real limit is the
+// per-file 5 MB check below, and only authorised callers ever reach body parsing.
 const MAX_BODY_BYTES = MAX_IMAGE_BYTES + 64 * 1024;
 const MODES = new Set(["kid", "nerd"]);
 // ISO 8601 date-time, e.g. 2026-10-10T10:00:00+13:00 or ...Z. A missing zone is read as UTC.
@@ -54,6 +55,8 @@ function requireText(form: FormData, name: string): string {
 }
 
 async function handleUpload(request: Request, env: Env): Promise<Response> {
+  // Auth has already passed in route(), so only the kiosk can make us parse a body.
+  // Advisory fast-path; the per-file size check further down is what enforces the limit.
   const length = Number(request.headers.get("content-length"));
   if (Number.isFinite(length) && length > MAX_BODY_BYTES) throw new HttpError(400, "Upload too large");
   if (!(request.headers.get("content-type") ?? "").toLowerCase().startsWith("multipart/form-data")) {

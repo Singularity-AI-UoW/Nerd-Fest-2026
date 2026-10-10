@@ -52,6 +52,20 @@ describe("POST /api/upload", () => {
     expect(await count("images")).toBe(0);
   });
 
+  it("rejects an unauthorised request with a large body before parsing it (401)", async () => {
+    const big = new Uint8Array(6 * 1024 * 1024);
+    big.set([0xff, 0xd8, 0xff]);
+    const f = form({ image: new Blob([big], { type: "image/jpeg" }) });
+    // Bad fields would give 400 if the body were parsed; 401 proves auth ran first.
+    f.set("id", "BAD");
+    for (const token of [null, "wrong-token-value"]) {
+      const res = await upload(f, token);
+      expect(res.status).toBe(401);
+    }
+    expect(await count("images")).toBe(0);
+    expect(await env.IMAGES.head(`${ID}.jpg`)).toBeNull();
+  });
+
   it("rejects a wrong token (401) without echoing it", async () => {
     const res = await upload(form(), "wrong-token-value");
     expect(res.status).toBe(401);
