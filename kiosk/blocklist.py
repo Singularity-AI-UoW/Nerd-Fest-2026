@@ -6,10 +6,18 @@ on substrings inside longer words, so "skilled" and "scunthorpe" are fine.
 """
 
 import re
+import unicodedata
 from pathlib import Path
 
 _SUBSTITUTIONS = str.maketrans(
     {"0": "o", "1": "i", "3": "e", "4": "a", "5": "s", "7": "t", "@": "a", "$": "s"}
+)
+# Common Cyrillic and Greek look-alikes (lower case) mapped to Latin letters.
+_LOOKALIKES = str.maketrans(
+    {
+        "а": "a", "е": "e", "о": "o", "р": "p", "с": "c", "у": "y", "х": "x", "і": "i",
+        "ο": "o", "α": "a", "ρ": "p",
+    }
 )
 _REPEATS = re.compile(r"([a-z])\1{2,}")
 _MIN_SUBRUN = 3  # shortest sub-run of spaced-out single letters worth testing
@@ -18,10 +26,14 @@ _MIN_SUBRUN = 3  # shortest sub-run of spaced-out single letters worth testing
 def _clean(text: str, keep: int) -> str:
     """Lower-case, map look-alike characters, drop non-letters, squash letter runs.
 
-    Runs of 3 or more of the same letter are cut down to `keep` letters.
+    Accents are stripped ("pöop" -> "poop"), common Cyrillic/Greek look-alikes become
+    Latin letters, and only ASCII a-z and spaces are kept. Runs of 3 or more of the
+    same letter are cut down to `keep` letters.
     """
-    mapped = text.lower().translate(_SUBSTITUTIONS)
-    letters = "".join(c for c in mapped if c.isalpha() or c == " ")
+    lowered = text.lower().translate(_LOOKALIKES)
+    decomposed = unicodedata.normalize("NFKD", lowered)
+    mapped = "".join(c for c in decomposed if not unicodedata.combining(c)).translate(_SUBSTITUTIONS)
+    letters = "".join(c for c in mapped if ("a" <= c <= "z") or c == " ")
     squashed = _REPEATS.sub(lambda m: m.group(1) * keep, letters)
     return " ".join(squashed.split())
 

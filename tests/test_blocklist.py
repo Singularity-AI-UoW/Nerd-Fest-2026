@@ -34,6 +34,22 @@ def test_normalise_substitutions_and_squash():
     assert normalise("heeeello") == "hello"
 
 
+def test_normalise_strips_accents_and_lookalikes():
+    assert normalise("pöop") == "poop"
+    assert normalise("рооp") == "poop"  # Cyrillic р and о
+    assert normalise("Māori") == "maori"
+
+
+def test_normalise_cjk_only_is_empty():
+    assert normalise("日本語のテキスト") == ""
+
+
+def test_lookalike_and_accented_text_is_blocked(bl):
+    assert bl.hits("рооp")  # Cyrillic р and о
+    assert bl.hits("a pöop")
+    assert not bl.hits("日本語")
+
+
 def test_spaced_letters_inside_a_sentence(bl):
     assert bl.hits("a cat and a b o m b") == ["bomb"]
     assert bl.hits("p o o p") == ["poop"]
