@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Image studio</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="studio">
+<h1>Image studio</h1>
+<textarea id="prompt" placeholder="Describe a picture" aria-label="Describe a picture"></textarea>
+<button id="generate" type="button">Make it!</button>
+<div class="studio-out">
+  <div id="busy" hidden><span class="spin"></span><span>Making your picture...</span></div>
+  <img id="result" alt="Your picture" hidden>
+</div>
+<script>
+(function () {
+  var prompt = document.getElementById("prompt");
+  var busy = document.getElementById("busy");
+  var result = document.getElementById("result");
+
+  document.getElementById("generate").addEventListener("click", function () {
+    busy.hidden = false;
+  });
+
+  window.showImage = function (dataUrl) {
+    result.src = dataUrl;
+    result.hidden = false;
+    busy.hidden = true;
+  };
+
+  window.resetStudio = function () {
+    prompt.value = "";
+    busy.hidden = true;
+    result.removeAttribute("src");
+    result.hidden = true;
+  };
+})();
+</script>
+</body>
+</html>

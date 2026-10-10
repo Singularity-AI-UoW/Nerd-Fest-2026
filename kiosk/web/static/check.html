@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preflight checks</title>
+<link rel="stylesheet" href="/static/style.css">
+<style>
+  .check-row { display: grid; grid-template-columns: 28px minmax(200px, 1fr) auto; gap: 6px 14px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--panel-2); }
+  .check-row:last-child { border-bottom: 0; }
+  .check-row .dot { width: 20px; height: 20px; border-radius: 50%; background: var(--muted); opacity: 0.35; }
+  .check-row.running .dot { opacity: 1; background: var(--orange); }
+  .check-row.pass .dot { opacity: 1; background: var(--green); }
+  .check-row.fail .dot { opacity: 1; background: var(--red); }
+  .check-row .label { font-weight: 700; }
+  .check-row .detail { grid-column: 2 / -1; color: var(--muted); font-size: 16px; min-height: 1.3em; overflow-wrap: anywhere; }
+  .check-row.fail .detail { color: var(--red); }
+  .check-row.pass .detail { color: var(--green); }
+  .check-row.running .detail { color: var(--orange); font-weight: 700; }
+  .summary { font-weight: 700; margin-left: 8px; }
+  .note { color: var(--muted); font-size: 16px; margin: 8px 0 0; }
+</style>
+</head>
+<body class="organiser">
+<h1>Preflight checks <a class="navlink" href="/organiser">Back to the organiser</a></h1>
+<div class="card">
+  <div class="row">
+    <button id="run-all" type="button">Run all</button>
+    <span class="summary" id="summary" role="status"></span>
+  </div>
+  <p class="note">Run all does every check except the microphone and the button. Run those two yourself: they ask you to speak and to press the button.</p>
+  <div id="checks"></div>
+</div>
+<script>
+(function () {
+  "use strict";
+
+  // name, label, what to tell the organiser while it runs (the checks that need a person)
+  var CHECKS = [
+    ["mic", "Microphone level", "Say something now…"],
+    ["button", "Arcade button press", "Press the arcade button now (10 seconds). The show is paused meanwhile."],
+    ["internet", "Internet", ""],
+    ["google", "Google image model", ""],
+    ["stt", "Speech-to-text connect", ""],
+    ["openrouter", "OpenRouter LLM (1 short call)", ""],
+    ["fallback_llm", "Qwen fallback over Tailscale (1 short call)", ""],
+    ["gallery", "Gallery upload and delete", ""]
+  ];
+  var MANUAL = { mic: true, button: true };
+
+  var rows = {};
+  var busy = false;
+
+  function build() {
+    var box = document.getElementById("checks");
+    CHECKS.forEach(function (c) {
+      var row = document.createElement("div");
+      row.className = "check-row";
+      var dot = document.createElement("span");
+      dot.className = "dot";
+      var label = document.createElement("span");
+      label.className = "label";
+      label.textContent = c[1];
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = "Run";
+      btn.addEventListener("click", function () { runOne(c[0]); });
+      var detail = document.createElement("div");
+      detail.className = "detail";
+      row.appendChild(dot);
+      row.appendChild(label);
+      row.appendChild(btn);
+      row.appendChild(detail);
+      box.appendChild(row);
+      rows[c[0]] = { row: row, btn: btn, detail: detail, prompt: c[2] };
+    });
+  }
+
+  function setBusy(on) {
+    busy = on;
+    document.getElementById("run-all").disabled = on;
+    Object.keys(rows).forEach(function (n) { rows[n].btn.disabled = on; });
+  }
+
+  // Resolves to true (passed) or false. Never rejects.
+  function runCheck(name) {
+    var r = rows[name];
+    r.row.className = "check-row running";
+    r.detail.textContent = r.prompt || "Running…";
+    return fetch("/api/check/" + encodeURIComponent(name), { method: "POST" })
+      .then(function (resp) {
+        if (!resp.ok) throw new Error("The kiosk answered " + resp.status);
+        return resp.json();
+      })
+      .then(function (res) {
+        r.row.className = "check-row " + (res.ok ? "pass" : "fail");
+        r.detail.textContent = (res.ok ? "Pass: " : "Fail: ") + res.detail;
+        return !!res.ok;
+      })
+      .catch(function (e) {
+        r.row.className = "check-row fail";
+        r.detail.textContent = "Fail: could not run the check (" + (e.message || "no answer from the kiosk") + ")";
+        return false;
+      });
+  }
+
+  function runOne(name) {
+    if (busy) return;
+    setBusy(true);
+    var summary = document.getElementById("summary");
+    summary.textContent = "";
+    summary.style.color = "";
+    runCheck(name).then(function () { setBusy(false); });
+  }
+
+  function runAll() {
+    if (busy) return;
+    setBusy(true);
+    var summary = document.getElementById("summary");
+    summary.textContent = "Running…";
+    var names = CHECKS.map(function (c) { return c[0]; }).filter(function (n) { return !MANUAL[n]; });
+    var failed = 0;
+    // One after another, so the results are easy to follow and the load stays light.
+    names.reduce(function (chain, n) {
+      return chain.then(function () { return runCheck(n); }).then(function (ok) { if (!ok) failed++; });
+    }, Promise.resolve()).then(function () {
+      summary.textContent = failed === 0
+        ? "All " + names.length + " passed. Now run the microphone and the button."
+        : failed + " of " + names.length + " failed: see the red lines.";
+      summary.style.color = failed === 0 ? "var(--green)" : "var(--red)";
+      setBusy(false);
+    });
+  }
+
+  build();
+  document.getElementById("run-all").addEventListener("click", runAll);
+})();
+</script>
+</body>
+</html>

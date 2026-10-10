@@ -1,0 +1,164 @@
+# Kiosk blocklist. One entry per line, '#' starts a comment.
+# Whole-word matching only (after normalising look-alike characters, spaced-out
+# letters and stretched letters), so entries never match inside longer words.
+# Multi-word entries match consecutive whole words.
+# Keep Halloween-friendly words OFF this list: monster, zombie, spooky, fight, ghost, skeleton.
+
+# --- swearing ---
+fuck
+fucked
+fucking
+fucker
+motherfucker
+fuk
+fck
+shit
+bullshit
+shithead
+bitch
+bastard
+arse
+arsehole
+asshole
+ass
+dick
+dickhead
+prick
+piss
+pissed off
+twat
+cunt
+wank
+wanker
+bollocks
+douchebag
+poop
+turd
+
+# --- sexual terms ---
+sex
+sexy
+porn
+porno
+nsfw
+hentai
+nude
+naked
+lingerie
+erotic
+fetish
+bondage
+bdsm
+horny
+boob
+boobs
+tits
+titty
+nipple
+penis
+vagina
+pussy
+cock
+dildo
+vibrator
+genitals
+testicles
+orgasm
+cum
+masturbate
+blowjob
+handjob
+anal
+anus
+whore
+slut
+prostitute
+stripper
+incest
+rape
+raped
+rapist
+molest
+paedophile
+pedophile
+pedo
+
+# --- violence and weapons ---
+kill
+killed
+killing
+murder
+stab
+behead
+decapitate
+gore
+massacre
+slaughter
+torture
+genocide
+terrorist
+terrorism
+bomb
+grenade
+explosive
+machine gun
+shotgun
+handgun
+pistol
+rifle
+assault rifle
+kalashnikov
+firearm
+ammunition
+weapon
+weapons
+mass shooting
+school shooting
+
+# --- hate ---
+nazi
+hitler
+swastika
+kkk
+nigger
+nigga
+faggot
+fag
+retard
+tranny
+chink
+spic
+kike
+gook
+wetback
+paki
+coon
+dyke
+
+# --- drugs and alcohol ---
+cocaine
+heroin
+meth
+methamphetamine
+marijuana
+cannabis
+lsd
+mdma
+junkie
+overdose
+vape
+drunk
+booze
+alcohol
+vodka
+whisky
+
+# --- self-harm ---
+suicide
+suicidal
+self harm
+kys
+kill myself
+hang myself
+cut myself
+slit wrists

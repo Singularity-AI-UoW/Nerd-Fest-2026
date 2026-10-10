@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stall organiser</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="organiser">
+<h1>Stall organiser <a class="navlink" href="/check">Preflight checks</a> <span class="conn" id="conn">connecting...</span></h1>
+<div class="banner" id="offline-banner" role="alert" hidden></div>
+<div class="feedback" id="feedback" role="status"></div>
+<div class="org-grid">
+  <div class="card">
+    <h2>Status</h2>
+    <div class="lights" id="lights"></div>
+    <p>State: <b id="state">-</b> (<span id="mode">-</span>)</p>
+    <p>Active LLM: <b id="llm">-</b> &nbsp; Queue: <b id="queue">-</b></p>
+    <div class="row">
+      <button id="pause" type="button">Pause</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Type it for the visitor</h2>
+    <div class="row">
+      <input type="text" id="typed" maxlength="200" placeholder="Type what they said (up to 200 characters)" aria-label="Typed request">
+      <button id="send" type="button">Send</button>
+    </div>
+    <h2>Tweak</h2>
+    <div class="row" id="tweak-buttons">
+      <button type="button" data-n="1">1</button>
+      <button type="button" data-n="2">2</button>
+      <button type="button" data-n="3">3</button>
+      <button type="button" data-n="4">4</button>
+      <button type="button" data-n="0">Keep</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Remove an image</h2>
+    <div class="row">
+      <button id="remove-last" class="danger" type="button">Remove last image</button>
+    </div>
+    <div class="row">
+      <input type="text" id="remove-id" maxlength="8" placeholder="Image id (8 characters)" aria-label="Image id">
+      <button id="remove-btn" class="danger" type="button">Remove</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Winners</h2>
+    <table>
+      <thead><tr><th>Rank</th><th>Id</th><th>Votes</th><th>Claim code</th><th>Claimed</th></tr></thead>
+      <tbody id="winners"><tr><td colspan="5">No winners yet</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="card wide">
+    <h2>Log</h2>
+    <div id="log"></div>
+  </div>
+</div>
+<script src="/static/organiser.js"></script>
+</body>
+</html>
