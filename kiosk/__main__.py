@@ -26,6 +26,7 @@ from kiosk.controls import StallControls
 from kiosk.events import EventBus
 from kiosk.fakes import FakeHappyLlm, FakeImages, FakeUploader, FakeVoice
 from kiosk.images import make_image_service
+from kiosk.inputs import KeyInput, TapDetector
 from kiosk.llm import make_llm_client
 from kiosk.safety import Safety
 from kiosk.show import Show
@@ -114,6 +115,7 @@ async def run_app(cfg: Config, secrets: Secrets, *, fake: bool, headless: bool, 
         tasks: list[asyncio.Task] = []
         server: uvicorn.Server | None = None
         server_task: asyncio.Task | None = None
+        key_input: KeyInput | None = None
         try:
             page = browser.pages[0] if browser.pages else await browser.new_page()
             safety = Safety(blocklist, llm, cfg.limits.max_request_chars, cfg.preset_tweaks)
@@ -136,6 +138,15 @@ async def run_app(cfg: Config, secrets: Secrets, *, fake: bool, headless: bool, 
                 await asyncio.to_thread(webbrowser.open, f"{base}/organiser")
             log.info("Stall running at %s/organiser%s", base, " (fake mode)" if fake else "")
 
+            if not headless:  # a global key listener needs a display; tests and CI have none
+                key_input = KeyInput(
+                    cfg.button.key,
+                    TapDetector(cfg.button.hold_threshold_s, cfg.button.tap_window_s),
+                    bus,
+                    asyncio.get_running_loop(),
+                )
+                key_input.start()  # ValueError for a bad key name; other failures only warn
+
             tasks = [
                 asyncio.create_task(show.run_forever(), name="show"),
                 asyncio.create_task(uploader.run_forever(), name="uploader"),
@@ -147,6 +158,8 @@ async def run_app(cfg: Config, secrets: Secrets, *, fake: bool, headless: bool, 
                 if task is not server_task and task.exception() is not None:
                     raise task.exception()
         finally:
+            if key_input is not None:
+                key_input.stop()
             for task in tasks:
                 task.cancel()
             await asyncio.gather(*tasks, return_exceptions=True)
