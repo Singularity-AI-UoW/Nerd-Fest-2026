@@ -185,7 +185,12 @@
     };
     img.src = slide.url;
     wrap.appendChild(img);
-    if (slide.prompt) wrap.appendChild(el("div", "caption", slide.prompt));
+    if (slide.prompt) {
+      // The padding sits on the outer box so a clamped third line can't peek out under it.
+      var caption = el("div", "caption");
+      caption.appendChild(el("div", "caption-text", slide.prompt));
+      wrap.appendChild(caption);
+    }
     if (slide.qr_svg) {
       var qrBox = el("div", "slide-qr");
       var qr = el("div", "qr");
