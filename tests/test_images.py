@@ -1,12 +1,15 @@
 import base64
 import io
 import time
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from google.genai import errors as genai_errors
 from PIL import Image
 
-from kiosk.images import ImageBlocked, ImageFailed, ImageService
+from kiosk.config import Secrets, load_config
+from kiosk.images import ImageBlocked, ImageFailed, ImageService, make_image_service
 
 
 def png_b64(colour="red") -> str:
@@ -93,10 +96,37 @@ async def test_timeout_counts_as_failure():
 
 
 async def test_safety_block_raises_blocked_without_retry():
-    svc, interactions = service([RuntimeError("Request blocked for SAFETY reasons")])
+    err = genai_errors.ClientError(
+        400, {"error": {"message": "Request blocked for SAFETY reasons", "status": "INVALID_ARGUMENT"}}
+    )
+    svc, interactions = service([err])
     with pytest.raises(ImageBlocked):
         await svc.generate("x")
     assert len(interactions.calls) == 1
+
+
+async def test_proxy_blocked_error_is_retried_then_failed():
+    svc, interactions = service(
+        [ConnectionError("connection blocked by proxy"), ConnectionError("connection blocked by proxy")]
+    )
+    with pytest.raises(ImageFailed):
+        await svc.generate("x")
+    assert len(interactions.calls) == 2
+
+
+async def test_client_error_without_safety_wording_is_retried():
+    err = genai_errors.ClientError(429, {"error": {"message": "quota exceeded", "status": "RESOURCE_EXHAUSTED"}})
+    svc, interactions = service([err, image_result()])
+    assert (await svc.generate("x")).startswith(b"\xff\xd8")
+    assert len(interactions.calls) == 2
+
+
+async def test_server_error_mentioning_safety_is_not_blocked():
+    err = genai_errors.ServerError(503, {"error": {"message": "safety backend unavailable", "status": "UNAVAILABLE"}})
+    svc, interactions = service([err, err])
+    with pytest.raises(ImageFailed):
+        await svc.generate("x")
+    assert len(interactions.calls) == 2
 
 
 async def test_no_output_image_is_blocked_without_retry():
@@ -125,3 +155,12 @@ async def test_fake_images_returns_jpeg_records_and_fails_once():
         await fake.edit(out, "add a hat")
     assert (await fake.edit(out, "add a hat")).startswith(b"\xff\xd8")
     assert [c["kind"] for c in fake.calls] == ["generate", "edit", "edit"]
+
+
+def test_make_image_service_uses_config_values():
+    cfg = load_config(Path(__file__).resolve().parent.parent / "config.toml")
+    secrets = Secrets("dummy-key", "", "", "", "", "")
+    svc = make_image_service(cfg, secrets)
+    assert svc.model == "gemini-3.1-flash-lite-image"
+    assert svc._size == cfg.models.image_size == "1K"
+    assert svc._timeout_s == cfg.timeouts.image_call_s == 30

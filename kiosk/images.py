@@ -10,8 +10,9 @@ Safety-block signal (checked against the SDK types, docs and one live call on 10
     `errors` and `steps`, plus `output_image`, which is None when no image
     step came back).
   - So a blocked prompt is detected two ways: (1) a successful response with
-    no `output_image`, or (2) an exception whose message mentions
-    safety/blocked/prohibited. Both map to ImageBlocked.
+    no `output_image`, or (2) a google.genai ClientError (4xx) whose message
+    mentions safety, prohibited or a content policy. Both map to ImageBlocked.
+    Other exceptions (network, timeout, 5xx, "blocked by proxy") are retried.
   - Live success shape: status "completed", steps [ThoughtStep, ModelOutputStep],
     output_image.mime_type "image/jpeg", 1024x1024. A real block was not
     triggered on purpose; if one looks different,
@@ -27,6 +28,7 @@ import logging
 from typing import Any
 
 from google import genai
+from google.genai import errors as genai_errors
 from PIL import Image, UnidentifiedImageError
 
 from kiosk.config import Config, Secrets
@@ -35,7 +37,7 @@ log = logging.getLogger(__name__)
 
 JPEG_QUALITY = 85
 MAX_ATTEMPTS = 2  # first try plus one retry
-BLOCK_WORDS = ("safety", "blocked", "prohibited")
+BLOCK_WORDS = ("safety", "prohibited", "content polic")
 
 
 class ImageBlocked(Exception):
@@ -47,6 +49,10 @@ class ImageFailed(Exception):
 
 
 def _is_block_error(exc: BaseException) -> bool:
+    # Only an API 4xx rejection counts. Network, timeout and 5xx errors never
+    # do, and the bare word "blocked" is not enough (a venue proxy says that).
+    if not isinstance(exc, genai_errors.ClientError):
+        return False
     message = str(exc).lower()
     return any(word in message for word in BLOCK_WORDS)
 
