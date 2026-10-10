@@ -6,7 +6,7 @@ from pathlib import Path
 
 from kiosk.config import Secrets, load_config
 from kiosk.store import ImageRecord, Store
-from kiosk.takehome import build_takehome, image_page_url, qr_svg
+from kiosk.takehome import build_takehome, image_page_url, picture_page_url, picture_qr_svg, qr_svg
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SECRETS = Secrets("", "", "", "", "https://gallery.example", "")
@@ -26,6 +26,17 @@ def test_url_has_claim_fragment():
 def test_url_tolerates_trailing_slash():
     assert image_page_url("https://gallery.example/", "abcdefgh", "0123") == (
         "https://gallery.example/i/abcdefgh#c=0123"
+    )
+
+
+def test_picture_page_url_has_no_claim_code():
+    # The slideshow QR is seen by everyone, so it must never carry the claim code.
+    assert picture_page_url("https://gallery.example/", "abcdefgh") == "https://gallery.example/i/abcdefgh"
+
+
+def test_picture_qr_svg_encodes_the_page_without_claim():
+    assert picture_qr_svg("https://gallery.example", "abcdefgh") == qr_svg(
+        "https://gallery.example/i/abcdefgh"
     )
 
 

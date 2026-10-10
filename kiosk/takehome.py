@@ -17,8 +17,19 @@ log = logging.getLogger(__name__)
 QR_DISPLAY_PX = 360
 
 
+def picture_page_url(base: str, id: str) -> str:
+    """The picture's public gallery page, with no claim code."""
+    return f"{base.rstrip('/')}/i/{id}"
+
+
 def image_page_url(base: str, id: str, claim: str) -> str:
-    return f"{base.rstrip('/')}/i/{id}#c={claim}"
+    return f"{picture_page_url(base, id)}#c={claim}"
+
+
+@functools.lru_cache(maxsize=256)
+def picture_qr_svg(base: str, id: str) -> str:
+    """The idle slideshow's QR: everyone can see it, so no claim code."""
+    return qr_svg(picture_page_url(base, id))
 
 
 def qr_svg(url: str) -> str:

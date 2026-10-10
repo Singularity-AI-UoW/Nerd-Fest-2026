@@ -27,13 +27,32 @@
       <input type="text" id="typed" maxlength="200" placeholder="Type what they said (up to 200 characters)" aria-label="Typed request">
       <button id="send" type="button">Send</button>
     </div>
-    <h2>Tweak</h2>
-    <div class="row" id="tweak-buttons">
+  </div>
+
+  <div class="card">
+    <h2>Visitor</h2>
+    <p class="hint">Use these when the visitor is unsure. Only the buttons for the current step work.</p>
+    <div class="row step-group" data-state="choose_mode">
+      <span class="step-name">Mode</span>
+      <button type="button" data-step="kid">Kid</button>
+      <button type="button" data-step="nerd">Nerd</button>
+    </div>
+    <div class="row step-group" data-state="confirm">
+      <span class="step-name">I heard…</span>
+      <button type="button" data-step="go">Go</button>
+      <button type="button" data-step="retry">Try again</button>
+    </div>
+    <div class="row step-group" data-state="tweak" id="tweak-buttons">
+      <span class="step-name">Tweak</span>
       <button type="button" data-n="1">1</button>
       <button type="button" data-n="2">2</button>
       <button type="button" data-n="3">3</button>
       <button type="button" data-n="4">4</button>
       <button type="button" data-n="0">Keep</button>
+    </div>
+    <div class="row step-group" data-state="takehome">
+      <span class="step-name">Take-home</span>
+      <button type="button" data-step="next">Next visitor</button>
     </div>
   </div>
 

@@ -7,8 +7,12 @@
     idle: "Press the big button!",
     choose_mode: "Hold for kid mode, press twice for nerd mode",
     listen: "Hold the button and talk",
-    confirm: null // built from the last caption
+    confirm: null, // built from the last caption
+    takehome: "Press the button when you're done"
   };
+  // The page is laid out at 1920x1080 and scaled to fill the screen (4K included).
+  var DESIGN_W = 1920;
+  var DESIGN_H = 1080;
   var STEP_STATES = ["choose_mode", "listen", "confirm"];
   var STUDIO_STATES = ["agent", "tweak"];
   var NEW_VISITOR_STATES = ["idle", "choose_mode"];
@@ -54,7 +58,6 @@
     } else if (s === "idle" && winnerOn) showOnly("winner");
     else showOnly("slideshow");
     $("idle-signup").hidden = $("slideshow").hidden || !st.signupQr;
-    document.body.classList.toggle("idle-wide", !$("slideshow").hidden);
     renderSlide();
 
     // footer
@@ -68,6 +71,19 @@
     setBlock("narration-block", "narration", st.narration);
     renderTweaks();
     renderNerd();
+
+    // With nothing in the right column (idle, choose mode...), the stage takes the full width.
+    var sideEmpty = ["caption-block", "narration-block", "tweaks-block", "nerd"].every(function (id) {
+      return $(id).hidden;
+    });
+    document.body.classList.toggle("stage-wide", sideEmpty && $("studio").hidden);
+  }
+
+  function fitScreen() {
+    var scale = Math.min(window.innerWidth / DESIGN_W, window.innerHeight / DESIGN_H);
+    var x = (window.innerWidth - DESIGN_W * scale) / 2;
+    var y = (window.innerHeight - DESIGN_H * scale) / 2;
+    $("tv-grid").style.transform = "translate(" + x + "px, " + y + "px) scale(" + scale + ")";
   }
 
   function setBlock(blockId, textId, text) {
@@ -170,6 +186,14 @@
     img.src = slide.url;
     wrap.appendChild(img);
     if (slide.prompt) wrap.appendChild(el("div", "caption", slide.prompt));
+    if (slide.qr_svg) {
+      var qrBox = el("div", "slide-qr");
+      var qr = el("div", "qr");
+      qr.innerHTML = slide.qr_svg; // server-made SVG
+      qrBox.appendChild(qr);
+      qrBox.appendChild(el("div", "qr-label", "Scan to get this picture"));
+      wrap.appendChild(qrBox);
+    }
     box.appendChild(wrap);
   }
 
@@ -280,6 +304,8 @@
     slideshow: function (m) {
       var slides = (Array.isArray(m.images) ? m.images : []).filter(function (i) {
         return i && typeof i.url === "string" && i.url;
+      }).map(function (i) {
+        return { url: i.url, prompt: i.prompt, qr_svg: typeof i.qr_svg === "string" ? i.qr_svg : "" };
       });
       var top3 = (Array.isArray(m.top3) ? m.top3 : []).filter(function (t) {
         return t && typeof t.url === "string" && t.url;
@@ -321,6 +347,8 @@
     ws.onerror = function () { ws.close(); };
   }
 
+  window.addEventListener("resize", fitScreen);
+  fitScreen();
   render();
   connect();
 })();

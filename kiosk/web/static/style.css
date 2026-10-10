@@ -24,15 +24,16 @@ html, body {
 
 [hidden] { display: none !important; }
 
-/* ---------- TV (designed for 1920x1080) ---------- */
+/* ---------- TV (laid out at 1920x1080; tv.js scales it to fill the screen) ---------- */
 body.tv { overflow: hidden; }
 
 .tv-grid {
   display: grid;
   grid-template-columns: 60% 40%;
   grid-template-rows: 1fr 150px;
-  height: 100vh;
-  width: 100vw;
+  width: 1920px;
+  height: 1080px;
+  transform-origin: 0 0;
 }
 
 .stage {
@@ -65,9 +66,9 @@ body.tv { overflow: hidden; }
   background: #000;
 }
 
-/* Idle slideshow: fills the whole width while it shows (the side column is empty then). */
-body.idle-wide .stage { grid-column: 1 / 3; }
-body.idle-wide .side { display: none; }
+/* With nothing in the side column (idle, choose mode...), the stage fills the whole width. */
+body.stage-wide .stage { grid-column: 1 / 3; }
+body.stage-wide .side { display: none; }
 
 #slideshow { padding: 0; }
 #slideshow .slide { position: relative; width: 100%; height: 100%; background: #000; }
@@ -113,6 +114,22 @@ body.idle-wide .side { display: none; }
 #idle-signup .qr-label { font-size: 36px; }
 
 body.top3-on #idle-signup { display: none; } /* the card needs the whole width */
+
+/* The picture's own QR, top left corner of its slide (no claim code in it). */
+#slideshow .slide-qr {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 12px 8px;
+  background: rgba(18, 10, 31, 0.85);
+  border-radius: 16px;
+}
+#slideshow .slide-qr .qr { width: 220px; height: 220px; padding: 8px; }
+#slideshow .slide-qr .qr-label { font-size: 28px; max-width: 240px; text-align: center; }
 
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 
@@ -206,6 +223,12 @@ button { cursor: pointer; font-weight: 700; background: var(--panel-2); }
 button:hover { background: var(--purple); color: #1a0f00; }
 button.danger { border-color: var(--red); }
 button.on { background: var(--red); border-color: var(--red); color: #1a0f00; }
+button:disabled { opacity: 0.35; cursor: default; }
+button:disabled:hover { background: var(--panel-2); color: var(--text); }
+.hint { margin: 0 0 10px; color: var(--muted); font-size: 16px; }
+.step-name { min-width: 110px; font-weight: 700; color: var(--muted); }
+.step-group.current { background: var(--panel-2); border-radius: 8px; padding: 6px; }
+.step-group.current .step-name { color: var(--orange); }
 .banner { background: var(--red); color: #1a0f00; font-weight: 800; font-size: 22px; padding: 14px 20px; border-radius: 12px; margin-bottom: 20px; }
 .banner[hidden] { display: none; }
 .feedback { min-height: 1.4em; margin-bottom: 12px; font-weight: 600; color: var(--green); }

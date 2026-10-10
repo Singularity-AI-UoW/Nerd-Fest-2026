@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 from typing import Awaitable, Callable
 
 import httpx
@@ -18,6 +19,7 @@ from kiosk.store import Store
 log = logging.getLogger(__name__)
 
 LATEST_IMAGES = 30
+_ID = re.compile(r"[A-Za-z0-9]{1,32}")
 SOON_DELAY_S = 5.0  # let a new picture finish uploading before refreshing for it
 
 Entries = list[dict]
@@ -28,15 +30,18 @@ class Slideshow:
     def __init__(self, http: httpx.AsyncClient | None, gallery_url: str, hub, interval_s: float = 60,
                  *, fetch_images: FetchImages | None = None,
                  signup_qr: Callable[[], str | None] | None = None,
+                 picture_qr: Callable[[str], str] | None = None,
                  soon_delay_s: float = SOON_DELAY_S):
         """`fetch_images` replaces the gallery calls (--fake uses the local store).
-        It returns (images, top3) and raises on failure."""
+        It returns (images, top3) and raises on failure. `picture_qr` turns an
+        image id into the QR shown on that picture's slide."""
         self._http = http
         self._base = gallery_url.rstrip("/")
         self._hub = hub
         self.interval_s = interval_s
         self._fetch = fetch_images
         self._signup_qr = signup_qr
+        self._picture_qr = picture_qr
         self._soon_delay_s = soon_delay_s
         self._soon = asyncio.Event()
         self._images: Entries = []
@@ -70,7 +75,9 @@ class Slideshow:
             except Exception as exc:  # noqa: BLE001 - a bad source must not stop the show
                 log.warning("slideshow source failed: %s", type(exc).__name__)
             else:
-                self._images, self._top3, changed = images[:LATEST_IMAGES], top3, True
+                images = [self._with_qr({"url": i["url"], "prompt": i["prompt"]}, i.get("id"))
+                          for i in images[:LATEST_IMAGES]]
+                self._images, self._top3, changed = images, top3, True
         else:
             images = await self._get("/api/images", "images")
             board = await self._get_leaderboard()
@@ -128,13 +135,21 @@ class Slideshow:
             if with_votes:
                 votes = item.get("votes")
                 entry["votes"] = votes if isinstance(votes, int) else 0
+            else:
+                entry = self._with_qr(entry, item.get("id"))
             out.append(entry)
         return out
+
+    def _with_qr(self, entry: dict, id_) -> dict:
+        """Add the picture's QR when its id is a plain id (it goes into a URL)."""
+        if self._picture_qr and isinstance(id_, str) and _ID.fullmatch(id_):
+            entry["qr_svg"] = self._picture_qr(id_)
+        return entry
 
 
 def local_images_source(store: Store, limit: int = LATEST_IMAGES) -> FetchImages:
     """For --fake: the latest local pictures, no leaderboard."""
     async def fetch() -> tuple[Entries, Entries]:
         recs = await asyncio.to_thread(store.recent, limit)
-        return [{"url": f"/local/{r.id}.jpg", "prompt": r.prompt} for r in recs], []
+        return [{"id": r.id, "url": f"/local/{r.id}.jpg", "prompt": r.prompt} for r in recs], []
     return fetch

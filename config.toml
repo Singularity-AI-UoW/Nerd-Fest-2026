@@ -30,13 +30,15 @@ hold_threshold_s = 0.4
 tap_window_s = 0.4
 
 [timeouts]
-choose_mode_s = 10
+# choose_mode_s, confirm_s, tweak_s and takehome_s wait for the visitor's button or
+# the organiser page; these are only safety nets for when nobody does anything.
+choose_mode_s = 180
 listen_wait_s = 20
 listen_hold_max_s = 15
-confirm_s = 8
-agent_cap_s = 45
-tweak_s = 12
-takehome_s = 15
+confirm_s = 180
+agent_cap_s = 45  # the agent's own work; the clock stops during the tweak wait
+tweak_s = 180
+takehome_s = 180
 image_call_s = 30
 llm_call_s = 15
 

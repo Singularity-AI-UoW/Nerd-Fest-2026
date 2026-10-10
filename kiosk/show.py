@@ -35,6 +35,15 @@ def _is(*kinds: str) -> Callable[[Event], bool]:
     return lambda e: e.kind in kinds
 
 
+def _step(*actions: str) -> Callable[[Event], bool]:
+    """An organiser step button, one of `actions`."""
+    return lambda e: e.kind == "step" and e.text in actions
+
+
+def _either(*tests: Callable[[Event], bool]) -> Callable[[Event], bool]:
+    return lambda e: any(t(e) for t in tests)
+
+
 class Show:
     def __init__(self, cfg, bus, hub, store, safety, llm_agent, scripted_agent, studio,
                  images, uploader, voice, takehome: Callable[[ImageRecord], dict],
@@ -64,6 +73,8 @@ class Show:
         self.scripted_only = False
         self.record_now = False  # confirm's hold_start: listen starts recording at once
         self.recording = False
+        self._tweak_since: float | None = None
+        self._tweak_total_s = 0.0
 
     # ----- public -----
 
@@ -193,10 +204,11 @@ class Show:
 
     async def _choose_mode(self) -> str:
         t = self.cfg.timeouts
-        ev = await self._next_event(
-            t.choose_mode_s, lambda e: e.kind == "hold_end" or (e.kind == "taps" and (e.n or 0) > 1)
-        )
-        self.mode = "nerd" if ev is not None and ev.kind == "taps" else "kid"
+        ev = await self._next_event(t.choose_mode_s, _either(
+            _is("hold_end"), lambda e: e.kind == "taps" and (e.n or 0) > 1, _step("kid", "nerd"),
+        ))
+        nerd = ev is not None and (ev.kind == "taps" or ev.text == "nerd")
+        self.mode = "nerd" if nerd else "kid"
         return "listen"
 
     async def _listen(self) -> str:
@@ -239,8 +251,10 @@ class Show:
         return "confirm"
 
     async def _confirm(self) -> str:
-        ev = await self._next_event(self.cfg.timeouts.confirm_s, _is("taps", "hold_start"))
-        if ev is not None and ev.kind == "hold_start":
+        ev = await self._next_event(
+            self.cfg.timeouts.confirm_s, _either(_is("taps", "hold_start"), _step("go", "retry"))
+        )
+        if ev is not None and (ev.kind == "hold_start" or ev.text == "retry"):
             self.record_now = True
             return "listen"
         return "filter"
@@ -291,13 +305,39 @@ class Show:
         cap = self.cfg.timeouts.agent_cap_s
         if not self.scripted_only:
             try:
-                return await asyncio.wait_for(self.llm_agent.run(job, ctx), cap)
+                return await self._capped(self.llm_agent.run(job, ctx), cap)
             except (AgentGaveUp, TimeoutError) as exc:
                 log.info("LLM agent stopped (%s); scripted agent resumes", type(exc).__name__)
         try:
-            return await asyncio.wait_for(self.scripted_agent.run(job, ctx), 2 * cap)
+            return await self._capped(self.scripted_agent.run(job, ctx), 2 * cap)
         except TimeoutError as exc:
             raise ImageFailed("scripted agent timed out") from exc
+
+    def _tweak_wait_s(self, now: float) -> float:
+        """Total time spent waiting for tweak choices, including a wait in progress."""
+        running = now - self._tweak_since if self._tweak_since is not None else 0.0
+        return self._tweak_total_s + running
+
+    async def _capped(self, coro, cap: float):
+        """Like asyncio.wait_for, but the clock stops while the visitor picks a tweak."""
+        loop = asyncio.get_running_loop()
+        task = asyncio.ensure_future(coro)
+        start, waited = loop.time(), self._tweak_wait_s(loop.time())
+        try:
+            while not task.done():
+                now = loop.time()
+                left = cap - (now - start - (self._tweak_wait_s(now) - waited))
+                if self._tweak_since is not None:
+                    left = max(left, self.poll_s)  # paused: check again soon
+                elif left <= 0:
+                    raise TimeoutError
+                await asyncio.wait({task}, timeout=left)
+            return task.result()
+        finally:
+            if not task.done():
+                task.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await task
 
     async def _deliver(self, result: AgentResult) -> None:
         """Save and queue the picture, then fill the take-home card before it shows."""
@@ -311,7 +351,11 @@ class Show:
         await self.hub.send({**self.takehome(rec), "type": "takehome"})
 
     async def _takehome(self) -> str:
-        await asyncio.sleep(self.cfg.timeouts.takehome_s)
+        """Stay up until the visitor presses the button or the organiser moves on."""
+        self.bus.clear()  # presses made while the agent worked do not end the card
+        await self._next_event(
+            self.cfg.timeouts.takehome_s, _either(_is("taps", "hold_start"), _step("next"))
+        )
         return "idle"
 
     # ----- agent callbacks -----
@@ -326,12 +370,16 @@ class Show:
     async def _choose_tweak(self, options: list[str]) -> str | None:
         """Show the options and wait tweak_s for a choice. None means keep."""
         self.bus.clear()  # presses made while the agent worked are not a choice
+        loop = asyncio.get_running_loop()
+        self._tweak_since = loop.time()  # the agent cap pauses while the visitor chooses
         self.state = "tweak"
         await self._send_state("tweak")
         await self.hub.send({"type": "tweaks", "options": list(options)})
         try:
             ev = await self._next_event(self.cfg.timeouts.tweak_s, _is("taps", "tweak_choice"))
         finally:
+            self._tweak_total_s += loop.time() - self._tweak_since
+            self._tweak_since = None
             self.state = "agent"
             await self._send_state("agent")
         if ev is None:
