@@ -66,21 +66,25 @@ async def _launch(pw):
         pytest.skip(f"Chromium not available: {exc}")
 
 
+async def _tv_page_in_agent_state(app, browser):
+    page = await browser.new_page(viewport={"width": 1920, "height": 1080})
+    await page.goto(f"{app.url}/tv")
+    # The TV only shows the studio frame in the agent and tweak states.
+    await page.wait_for_function("window.WebSocket !== undefined")
+    for _ in range(50):
+        app.send({"type": "state", "state": "agent", "mode": "kid"})
+        if await page.locator("#studio").is_visible():
+            break
+        await page.wait_for_timeout(100)
+    return page
+
+
 @pytest.mark.browser
 async def test_types_generates_and_shows_image(app):
     async with async_playwright() as pw:
         browser = await _launch(pw)
         try:
-            page = await browser.new_page(viewport={"width": 1920, "height": 1080})
-            await page.goto(f"{app.url}/tv")
-            # The TV only shows the studio frame in the agent and tweak states.
-            await page.wait_for_function("window.WebSocket !== undefined")
-            for _ in range(50):
-                app.send({"type": "state", "state": "agent", "mode": "kid"})
-                if await page.locator("#studio").is_visible():
-                    break
-                await page.wait_for_timeout(100)
-
+            page = await _tv_page_in_agent_state(app, browser)
             studio = Studio(page)
             await studio.open()
             await studio.type("a dragon", delay_ms=5)
@@ -100,6 +104,23 @@ async def test_types_generates_and_shows_image(app):
             assert await frame.locator("#prompt").input_value() == ""
             assert await frame.locator("#result").is_hidden()
             assert await frame.locator("#busy").is_hidden()
+        finally:
+            await browser.close()
+
+
+@pytest.mark.browser
+async def test_type_replaces_earlier_text(app):
+    # A resumed agent types the prompt again; the box must not show it twice.
+    async with async_playwright() as pw:
+        browser = await _launch(pw)
+        try:
+            page = await _tv_page_in_agent_state(app, browser)
+            studio = Studio(page)
+            await studio.open()
+            await studio.type("first", delay_ms=5)
+            await studio.type("a dragon", delay_ms=5)
+            frame = page.frame_locator("#studio")
+            assert await frame.locator("#prompt").input_value() == "a dragon"
         finally:
             await browser.close()
 

@@ -19,6 +19,9 @@ class Studio:
         await self._prompt.focus()
 
     async def type(self, text: str, delay_ms: int = 35) -> None:
+        """Replace the prompt box text. Clearing first means a resumed agent that
+        types again (after the agent cap) never shows the prompt twice."""
+        await self._prompt.fill("")
         await self._prompt.press_sequentially(text, delay=delay_ms)
 
     async def click_generate(self) -> None:
