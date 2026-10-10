@@ -2,20 +2,27 @@
 from __future__ import annotations
 
 import logging
-from typing import Callable
+from typing import Awaitable, Callable
 
-from kiosk.winner import winners
+from kiosk.winner import Claims, winners
 
 log = logging.getLogger(__name__)
 
 
+async def _no_claims() -> Claims:
+    return {}
+
+
 class StallControls:
-    def __init__(self, show, store, uploader, leaderboard: Callable[[], dict | None] = lambda: None):
-        """`leaderboard` returns the latest gallery leaderboard, or None if there is none yet."""
+    def __init__(self, show, store, uploader, leaderboard: Callable[[], dict | None] = lambda: None,
+                 claims: Callable[[], Awaitable[Claims | None]] = _no_claims):
+        """`leaderboard` returns the latest gallery leaderboard, or None if there is none yet.
+        `claims` fetches the contacts left for the top 3 (None if the gallery is unreachable)."""
         self._show = show
         self._store = store
         self._uploader = uploader
         self._leaderboard = leaderboard
+        self._claims = claims
 
     async def set_paused(self, p: bool) -> None:
         await self._show.set_paused(p)
@@ -39,5 +46,8 @@ class StallControls:
         self._store.remove(rec.id)
         return True
 
-    def winners(self) -> list[dict]:
-        return winners(self._leaderboard(), self._store)
+    async def winners(self) -> list[dict]:
+        board = self._leaderboard()
+        if not winners(board, self._store, {}):
+            return []  # no top 3 yet: no need to ask the gallery
+        return winners(board, self._store, await self._claims())

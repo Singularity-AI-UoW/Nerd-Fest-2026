@@ -67,7 +67,7 @@ def _missing(secrets: Secrets) -> list[str]:
 class _NoControls:
     async def set_paused(self, p: bool) -> None: ...
     async def remove(self, id: str) -> bool: return False
-    def winners(self) -> list[dict]: return []
+    async def winners(self) -> list[dict]: return []
 
 
 async def _no_text(_: str) -> None: ...

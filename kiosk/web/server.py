@@ -26,7 +26,7 @@ CheckRunner = Callable[[str], Awaitable[dict]]
 class Controls(Protocol):
     async def set_paused(self, p: bool) -> None: ...
     async def remove(self, id: str) -> bool: ...
-    def winners(self) -> list[dict]: ...
+    async def winners(self) -> list[dict]: ...
 
 
 class Hub:
@@ -157,7 +157,7 @@ def create_app(hub: Hub, bus: EventBus, store: Store, controls: Controls,
 
     @app.get("/api/winners")
     async def winners():
-        return controls.winners()
+        return await controls.winners()
 
     @app.post("/api/check/{name}")
     async def run_one_check(name: str):

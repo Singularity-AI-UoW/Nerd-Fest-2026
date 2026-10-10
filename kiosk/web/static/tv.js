@@ -293,6 +293,8 @@
     winner: function (m) {
       $("winner-image").src = m.image_url || "";
       $("winner-prompt").textContent = m.prompt || "";
+      $("winner-code").textContent = m.claim_code || "";
+      $("winner-claim").hidden = !m.claim_code; // a picture made elsewhere has no code here
       var box = $("winner-top3");
       box.textContent = "";
       (Array.isArray(m.top3) ? m.top3 : []).forEach(function (t) {

@@ -1,5 +1,6 @@
 import { htmlResponse, renderGallery, renderImagePage, renderNotFound, type ImageRow } from "./pages";
 import { castVote, getLeaderboard } from "./votes";
+import { saveClaim, topClaims } from "./claims";
 
 const ID_RE = /^[a-z2-7]{8}$/;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -124,6 +125,7 @@ async function handleDelete(id: string, env: Env): Promise<Response> {
   await env.IMAGES.delete(`${id}.jpg`);
   await env.DB.batch([
     env.DB.prepare("DELETE FROM votes WHERE image_id = ?").bind(id),
+    env.DB.prepare("DELETE FROM claims WHERE image_id = ?").bind(id),
     env.DB.prepare("DELETE FROM images WHERE id = ?").bind(id),
   ]);
   return json({ ok: true, id });
@@ -141,6 +143,19 @@ async function handleVote(request: Request, env: Env): Promise<Response> {
   const result = await castVote(request, env, id);
   if (!result.ok) return errorResponse(result.status, result.error);
   return json({ ok: true }, 200, result.setCookie ? { "set-cookie": result.setCookie } : {});
+}
+
+async function handleClaim(request: Request, env: Env): Promise<Response> {
+  let body: { id?: unknown; code?: unknown; contact?: unknown } | null;
+  try {
+    body = (await request.json()) as typeof body;
+  } catch {
+    throw new HttpError(400, "Expected JSON body");
+  }
+  const id = body?.id;
+  if (typeof id !== "string" || !ID_RE.test(id)) throw new HttpError(400, "Invalid id");
+  const result = await saveClaim(env, id, body?.code, body?.contact);
+  return result.ok ? json({ ok: true }) : errorResponse(result.status, result.error);
 }
 
 const LIST_LIMIT = 500;
@@ -180,6 +195,17 @@ async function route(request: Request, env: Env): Promise<Response> {
   if (pathname === "/api/vote") {
     if (method !== "POST") return errorResponse(405, "Method not allowed", { allow: "POST" });
     return await handleVote(request, env);
+  }
+
+  if (pathname === "/api/claim") {
+    if (method !== "POST") return errorResponse(405, "Method not allowed", { allow: "POST" });
+    return await handleClaim(request, env);
+  }
+
+  if (pathname === "/api/claims") {
+    if (method !== "GET") return errorResponse(405, "Method not allowed", { allow: "GET" });
+    if (!(await isAuthorised(request, env))) return errorResponse(401, "Unauthorised");
+    return json({ claims: await topClaims(env) }, 200, { "cache-control": "no-store" });
   }
 
   if (pathname === "/api/leaderboard") {

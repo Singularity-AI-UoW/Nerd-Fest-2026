@@ -162,6 +162,10 @@
     tr.appendChild(td);
   }
 
+  // Contact column: the contact itself for "ok"/"mismatch", else this text.
+  var CONTACT_TEXT = { none: "In person only", unreachable: "Can't reach the gallery" };
+  var CODE_MARK = { ok: "✓", mismatch: "✗ don't send" };
+
   function loadWinners() {
     fetch("/api/winners").then(function (r) { return r.json(); }).then(function (rows) {
       var body = $("winners");
@@ -170,7 +174,7 @@
       if (!rows.length) {
         var tr = document.createElement("tr");
         var td = document.createElement("td");
-        td.colSpan = 5;
+        td.colSpan = 7;
         td.textContent = "No winners yet";
         tr.appendChild(td);
         body.appendChild(tr);
@@ -182,6 +186,9 @@
         cell(tr, w.id);
         cell(tr, w.votes);
         cell(tr, w.claim_code != null ? w.claim_code : "not found");
+        var contact = CONTACT_TEXT[w.contact_status];
+        cell(tr, contact !== undefined ? contact : w.contact);
+        cell(tr, CODE_MARK[w.contact_status] || "");
         var td = document.createElement("td");
         var tick = document.createElement("input");
         tick.type = "checkbox";
