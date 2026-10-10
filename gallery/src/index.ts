@@ -1,3 +1,5 @@
+import { htmlResponse, renderGallery, renderImagePage, renderNotFound, type ImageRow } from "./pages";
+
 const ID_RE = /^[a-z2-7]{8}$/;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_PROMPT_CHARS = 500;
@@ -126,6 +128,17 @@ async function handleDelete(id: string, env: Env): Promise<Response> {
   return json({ ok: true, id });
 }
 
+const LIST_LIMIT = 500;
+
+async function listImages(env: Env): Promise<ImageRow[]> {
+  const { results } = await env.DB.prepare(
+    "SELECT id, prompt, mode, created_at FROM images ORDER BY created_at DESC, id DESC LIMIT ?",
+  )
+    .bind(LIST_LIMIT)
+    .all<ImageRow>();
+  return results;
+}
+
 async function route(request: Request, env: Env): Promise<Response> {
   const { pathname } = new URL(request.url);
   const method = request.method;
@@ -141,6 +154,28 @@ async function route(request: Request, env: Env): Promise<Response> {
     if (method !== "GET") return errorResponse(405, "Method not allowed", { allow: "GET" });
     // Malformed ids can never exist, so skip the R2 lookup.
     return ID_RE.test(img[1]) ? await handleImage(img[1], env) : errorResponse(404, "Not found");
+  }
+
+  if (pathname === "/api/images") {
+    if (method !== "GET") return errorResponse(405, "Method not allowed", { allow: "GET" });
+    const images = (await listImages(env)).map((i) => ({ ...i, url: `/img/${i.id}.jpg` }));
+    return json({ images });
+  }
+
+  if (pathname === "/") {
+    if (method !== "GET") return errorResponse(405, "Method not allowed", { allow: "GET" });
+    return htmlResponse(renderGallery(await listImages(env)));
+  }
+
+  const page = /^\/i\/([^/]+)$/.exec(pathname);
+  if (page) {
+    if (method !== "GET") return errorResponse(405, "Method not allowed", { allow: "GET" });
+    const row = ID_RE.test(page[1])
+      ? await env.DB.prepare("SELECT id, prompt, mode, created_at FROM images WHERE id = ?")
+          .bind(page[1])
+          .first<ImageRow>()
+      : null;
+    return row ? htmlResponse(renderImagePage(row)) : htmlResponse(renderNotFound(), 404);
   }
 
   const del = /^\/api\/images\/([^/]+)$/.exec(pathname);
