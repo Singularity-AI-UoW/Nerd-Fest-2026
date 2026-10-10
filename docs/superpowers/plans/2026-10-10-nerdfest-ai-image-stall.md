@@ -109,7 +109,7 @@ gallery/
   - The main session (not a subagent, since it holds the keys) creates `~/.nerdfest/.env` holding the two keys from REQUIREMENTS.md, plus `FALLBACK_LLM_URL=<your Tailscale server URL>/v1` and the fallback key. It leaves `GALLERY_URL` and `GALLERY_TOKEN` empty. Implementers never see the key values.
   - Replace each key line in REQUIREMENTS.md with `- API key: stored in ~/.nerdfest/.env (GOOGLE_API_KEY)` (and likewise for each key).
   - In `img_gen.py`, use `os.environ["GOOGLE_API_KEY"]`.
-  - Then run `grep -rIE "AQ\.[A-Za-z0-9_-]{20,}|sk-or-v1-[a-f0-9]{20,}|[a-f0-9]{48}" --exclude-dir=.git --exclude-dir=.venv --exclude-dir=node_modules .`. Expected: no output.
+  - Then run `grep -rIE "AQ\.[A-Za-z0-9_-]{20,}|sk-or-v1-[a-f0-9]{20,}|\b[a-f0-9]{48}\b" --exclude-dir=.git --exclude-dir=.venv --exclude-dir=node_modules .`. Expected: no output.
 - [ ] **Step 2: Initialise git and add `.gitignore`.**
   - The `.gitignore` lists `.env`, `*.env`, `.venv/`, `kiosk_data/`, `node_modules/`, `gallery/.wrangler/`, `__pycache__/` and `output.png`.
   - Run `git init`.
@@ -148,7 +148,7 @@ def test_secrets_from_file_and_masked(tmp_path, monkeypatch):
 - [ ] **Step 6:** Run `uv run pytest tests/test_config.py -v`. Expected: FAIL (import error).
 - [ ] **Step 7: Implement `kiosk/config.py`.** Use `tomllib` and `python-dotenv` `dotenv_values`. Parse `close_at` and `claim_until` with `datetime.fromisoformat`.
 - [ ] **Step 8:** Run `uv run pytest -v`. Expected: PASS.
-- [ ] **Step 9: Commit.** Run `git add -A && git commit -m "chore: project setup, config, secrets moved out of repo"`. Then run `git log -p | grep -E "AQ\.[A-Za-z0-9_-]{20,}|sk-or-v1-[a-f0-9]{20,}|[a-f0-9]{48}"`. Expected: no output.
+- [ ] **Step 9: Commit.** Run `git add -A && git commit -m "chore: project setup, config, secrets moved out of repo"`. Then run `git log -p | grep -E "AQ\.[A-Za-z0-9_-]{20,}|sk-or-v1-[a-f0-9]{20,}|\b[a-f0-9]{48}\b"`. Expected: no output.
 
 ---
 
