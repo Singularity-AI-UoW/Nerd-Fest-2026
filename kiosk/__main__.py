@@ -26,6 +26,7 @@ from kiosk.config import REPO_ROOT, Config, Secrets, load_config, load_secrets, 
 from kiosk.controls import StallControls
 from kiosk.events import EventBus
 from kiosk.fakes import FakeHappyLlm, FakeImages, FakeUploader, FakeVoice
+from kiosk.health import Health, fake_checks, make_checks
 from kiosk.images import make_image_service
 from kiosk.inputs import KeyInput, TapDetector
 from kiosk.llm import make_llm_client
@@ -111,7 +112,8 @@ async def run_app(cfg: Config, secrets: Secrets, *, fake: bool, headless: bool, 
                 log.warning("GALLERY_URL or GALLERY_TOKEN is not set: uploads will keep retrying")
             llm = make_llm_client(cfg, secrets)
             images = make_image_service(cfg, secrets)
-            voice = Voice(genai.Client(api_key=secrets.google_api_key), cfg.models.stt, bus)
+            google = genai.Client(api_key=secrets.google_api_key)
+            voice = Voice(google, cfg.models.stt, bus)
             http = await stack.enter_async_context(httpx.AsyncClient(timeout=UPLOAD_HTTP_TIMEOUT_S))
             uploader = Uploader(store, secrets.gallery_url, secrets.gallery_token, http)
         slideshow = Slideshow(
@@ -165,8 +167,15 @@ async def run_app(cfg: Config, secrets: Secrets, *, fake: bool, headless: bool, 
                 cfg.voting.close_at, slideshow, hub,
                 is_idle=lambda: show.state == "idle" and not show.paused and show.online,
             )
+            health = Health(
+                fake_checks() if fake else make_checks(cfg, secrets, http, google),
+                hub, lambda ok: setattr(show, "online", ok),
+                llm_active=lambda: getattr(llm, "active", None) or getattr(llm, "model", None),
+                is_paused=lambda: show.paused, queue_size=uploader.queue_size,
+            )
             tasks = [
                 asyncio.create_task(show.run_forever(), name="show"),
+                asyncio.create_task(health.run_forever(), name="health"),
                 asyncio.create_task(uploader.run_forever(), name="uploader"),
                 asyncio.create_task(slideshow.run_forever(), name="slideshow"),
                 asyncio.create_task(winner.run_forever(), name="winner"),

@@ -205,7 +205,9 @@ button { cursor: pointer; font-weight: 700; background: var(--panel-2); }
 button:hover { background: var(--purple); color: #1a0f00; }
 button.danger { border-color: var(--red); }
 button.on { background: var(--red); border-color: var(--red); color: #1a0f00; }
-.feedback { min-height: 1.4em; color: var(--muted); }
+.banner { background: var(--red); color: #1a0f00; font-weight: 800; font-size: 22px; padding: 14px 20px; border-radius: 12px; margin-bottom: 20px; }
+.banner[hidden] { display: none; }
+.feedback { min-height: 1.4em; margin-bottom: 12px; font-weight: 600; color: var(--green); }
 .feedback.err { color: var(--red); }
 table { width: 100%; border-collapse: collapse; }
 th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--panel-2); }

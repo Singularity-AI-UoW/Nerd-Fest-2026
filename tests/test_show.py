@@ -550,6 +550,32 @@ async def test_offline_holds_until_online(tmp_path):
             await task
 
 
+async def test_show_enters_offline_only_between_visitors(tmp_path):
+    h = Harness(tmp_path, images=FakeImages(delay_s=0.05))
+    task = asyncio.create_task(h.show.run_forever())
+    try:
+        await feed(h, [typed("a dragon"), "agent"])
+        h.show.online = False  # mid-turn: the visitor still finishes
+        await feed(h, ["takehome", "offline"])
+        assert "offline" not in h.hub.states()[:-1]
+        h.bus.put(typed("while offline"))
+        await asyncio.sleep(0.1)
+        assert h.hub.states()[-1] == "offline"
+        assert len(h.safety.requests) == 1
+        h.show.online = True
+        await feed(h, ["idle"])
+        await asyncio.sleep(0.05)
+        assert h.hub.states()[-1] == "idle"  # the press while offline was dropped
+        await feed(h, [typed("next visitor"), "agent"])
+    finally:
+        task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await task
+    assert h.hub.states()[:7] == ["idle", "confirm", "filter", "agent", "tweak", "agent", "takehome"]
+    assert [r for r, _ in h.safety.requests] == ["a dragon", "next visitor"]
+    assert len(h.uploader.recs) == 1
+
+
 async def test_hub_failure_does_not_stop_the_show(tmp_path):
     # The first narration fails, then the error log fails too; the next visitor is fine.
     h = Harness(tmp_path, llm=FakeLlm([turn("open_studio")] + happy_script()))

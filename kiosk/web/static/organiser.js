@@ -6,6 +6,8 @@
   var MAX_LOG_LINES = 300;
   var WINNERS_REFRESH_MS = 10000;
   var paused = false;
+  var holdingOffline = false; // the show is in its offline state (TV shows "Back soon")
+  var bothDown = false;       // the latest status has the gallery and Google both down
   var feedbackTimer = null;
 
   function feedback(text, isError) {
@@ -51,7 +53,9 @@
   });
 
   $("pause").addEventListener("click", function () {
-    post("/api/pause", { paused: !paused }).then(function (d) { if (d) setPaused(!paused); });
+    var want = !paused;
+    post("/api/pause", { paused: want }, want ? "Paused: the current visitor finishes first" : "Resumed")
+      .then(function (d) { if (d) setPaused(want); });
   });
 
   function removeText(d) { return d.removed ? "Image removed" : "Nothing was removed"; }
@@ -78,17 +82,30 @@
     return !!v;
   }
 
+  function renderBanner() {
+    var b = $("offline-banner");
+    var on = holdingOffline || bothDown;
+    b.hidden = !on;
+    b.textContent = on
+      ? "OFFLINE: the gallery and Google can't be reached. The TV shows \"Back soon\" between visitors and resumes by itself."
+      : "";
+  }
+
   function renderStatus(m) {
     var lights = $("lights");
     lights.textContent = "";
     var services = m.services && typeof m.services === "object" ? m.services : {};
     Object.keys(services).forEach(function (name) {
       var el = document.createElement("span");
-      el.className = "light" + (isUp(services[name]) ? " ok" : "");
+      var up = isUp(services[name]);
+      el.className = "light" + (up ? " ok" : "");
       el.appendChild(document.createElement("i"));
-      el.appendChild(document.createTextNode(name));
+      el.appendChild(document.createTextNode(name + (up ? "" : " (down)")));
       lights.appendChild(el);
     });
+    bothDown = "gallery" in services && "google" in services &&
+      !isUp(services.gallery) && !isUp(services.google);
+    renderBanner();
     $("llm").textContent = m.llm == null ? "-" : String(m.llm);
     $("queue").textContent = m.queue == null ? "-" : String(m.queue);
     setPaused(m.paused);
@@ -164,7 +181,12 @@
 
   // ----- websocket -----
   var handlers = {
-    state: function (m) { $("state").textContent = m.state || "-"; $("mode").textContent = m.mode || "-"; },
+    state: function (m) {
+      $("state").textContent = m.state || "-";
+      $("mode").textContent = m.mode || "-";
+      holdingOffline = m.state === "offline";
+      renderBanner();
+    },
     status: renderStatus,
     log: function (m) { addLog(m.text || ""); },
     message: function (m) { addLog("Message: " + (m.text || "")); }
