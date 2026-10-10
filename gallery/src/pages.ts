@@ -1,4 +1,5 @@
 // Server-rendered public pages. Every visitor-supplied string goes through escapeHtml.
+import type { Leaderboard } from "./votes";
 
 export interface ImageRow {
   id: string;
@@ -52,9 +53,16 @@ img{display:block;width:100%;height:auto;border-radius:12px;background:#1b222a}
 .claim p{margin:4px 0}
 .empty{color:#aab4bf}
 #top3:empty{display:none}
+#top3 ol{padding:0;margin:0;list-style:none;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+#top3 li{background:#1b222a;border-radius:12px;overflow:hidden;font-size:.85rem;text-align:center}
+#top3 li a{color:inherit;text-decoration:none;display:block}
+#top3 li span{display:block;padding:6px}
+#top3 .closed{font-weight:600;margin:0 0 8px}
+.vote-msg{display:block;margin:6px 10px;min-height:1.2em;font-size:.9rem}
+.actions .vote-msg{margin:0}
 `;
 
-function layout(body: string, script = ""): string {
+function layout(body: string, ...scripts: string[]): string {
   return `<!doctype html>
 <html lang="en-NZ">
 <head>
@@ -67,7 +75,7 @@ function layout(body: string, script = ""): string {
 <body>
 <main>
 ${body}
-</main>${script ? `\n<script>${script}</script>` : ""}
+</main>${scripts.map((s) => `\n<script>${s}</script>`).join("")}
 </body>
 </html>
 `;
@@ -75,7 +83,52 @@ ${body}
 
 const voteButton = (id: string) => `<button class="vote" data-id="${escapeHtml(id)}" type="button">Vote</button>`;
 
-export function renderGallery(images: ImageRow[]): string {
+// Runs in the visitor's browser. One handler for every vote button on the page.
+const VOTE_SCRIPT = `(function () {
+  var MESSAGES = { 200: "Thanks for voting!", 403: "Voting has closed" };
+  function show(btn, text) {
+    var msg = btn.nextElementSibling;
+    if (!msg || !msg.classList.contains("vote-msg")) {
+      msg = document.createElement("span");
+      msg.className = "vote-msg";
+      msg.setAttribute("role", "status");
+      btn.insertAdjacentElement("afterend", msg);
+    }
+    msg.textContent = text;
+  }
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest && e.target.closest("button.vote");
+    if (!btn || btn.disabled) return;
+    btn.disabled = true;
+    fetch("/api/vote", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id: btn.getAttribute("data-id") })
+    }).then(function (res) {
+      show(btn, MESSAGES[res.status] || "Couldn't vote \u2014 try again");
+    }, function () {
+      show(btn, "Couldn't vote \u2014 try again");
+    }).then(function () {
+      btn.disabled = false;
+    });
+  });
+})();`;
+
+function renderTop3(board: Leaderboard): string {
+  const items = board.top3
+    .map((t) => {
+      const id = escapeHtml(t.id);
+      const prompt = escapeHtml(t.prompt);
+      return `<li><a href="/i/${id}"><img src="/img/${id}.jpg" alt="${prompt}" loading="lazy" width="256" height="256"><span>${t.votes} ${t.votes === 1 ? "vote" : "votes"}</span></a></li>`;
+    })
+    .join("\n");
+  const closed = board.closed ? `<p class="closed">Voting has closed</p>` : "";
+  if (board.top3.length === 0) return closed;
+  return `${closed}<h2>Top 3</h2>\n<ol>\n${items}\n</ol>`;
+}
+
+export function renderGallery(images: ImageRow[], board: Leaderboard = { closed: false, top3: [] }): string {
   const cards = images
     .map((img) => {
       const prompt = escapeHtml(img.prompt);
@@ -91,11 +144,11 @@ ${voteButton(img.id)}
       ? `<p class="empty">No pictures yet. Come and make one at the stall!</p>`
       : `<ul class="grid">\n${cards}\n</ul>`;
   return layout(`<h1>Nerdfest AI Gallery</h1>
-<section id="top3" aria-label="Top 3"></section>
+<section id="top3" aria-label="Top 3">${renderTop3(board)}</section>
 <section id="all">
 <h2>All pictures</h2>
 ${list}
-</section>`);
+</section>`, VOTE_SCRIPT);
 }
 
 // Runs in the visitor's browser. The claim code stays in the browser: it is read from the URL
@@ -135,6 +188,7 @@ ${voteButton(img.id)}
 <a class="btn plain" href="/">See the gallery</a>
 </div>`,
     CLAIM_SCRIPT,
+    VOTE_SCRIPT,
   ).replace("<body>", `<body data-id="${id}">`);
 }
 

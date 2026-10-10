@@ -1,4 +1,5 @@
 import { htmlResponse, renderGallery, renderImagePage, renderNotFound, type ImageRow } from "./pages";
+import { castVote, getLeaderboard } from "./votes";
 
 const ID_RE = /^[a-z2-7]{8}$/;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -128,6 +129,20 @@ async function handleDelete(id: string, env: Env): Promise<Response> {
   return json({ ok: true, id });
 }
 
+async function handleVote(request: Request, env: Env): Promise<Response> {
+  let id: unknown;
+  try {
+    id = ((await request.json()) as { id?: unknown } | null)?.id;
+  } catch {
+    throw new HttpError(400, "Expected JSON body");
+  }
+  if (typeof id !== "string" || !ID_RE.test(id)) throw new HttpError(400, "Invalid id");
+
+  const result = await castVote(request, env, id);
+  if (!result.ok) return errorResponse(result.status, result.error);
+  return json({ ok: true }, 200, result.setCookie ? { "set-cookie": result.setCookie } : {});
+}
+
 const LIST_LIMIT = 500;
 
 async function listImages(env: Env): Promise<ImageRow[]> {
@@ -162,9 +177,20 @@ async function route(request: Request, env: Env): Promise<Response> {
     return json({ images });
   }
 
+  if (pathname === "/api/vote") {
+    if (method !== "POST") return errorResponse(405, "Method not allowed", { allow: "POST" });
+    return await handleVote(request, env);
+  }
+
+  if (pathname === "/api/leaderboard") {
+    if (method !== "GET") return errorResponse(405, "Method not allowed", { allow: "GET" });
+    return json(await getLeaderboard(env), 200, { "cache-control": "no-store" });
+  }
+
   if (pathname === "/") {
     if (method !== "GET") return errorResponse(405, "Method not allowed", { allow: "GET" });
-    return htmlResponse(renderGallery(await listImages(env)));
+    const [images, leaderboard] = await Promise.all([listImages(env), getLeaderboard(env)]);
+    return htmlResponse(renderGallery(images, leaderboard));
   }
 
   const page = /^\/i\/([^/]+)$/.exec(pathname);
