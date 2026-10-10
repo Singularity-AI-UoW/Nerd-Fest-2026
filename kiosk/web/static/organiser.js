@@ -105,6 +105,24 @@
   }
 
   // ----- winners -----
+  // "Claimed" ticks live in this page's localStorage only (nothing is sent to the server).
+  var CLAIMED_KEY = "nerdfest.claimed";
+  var claimedMemory = {}; // used when localStorage is blocked
+
+  function readClaimed() {
+    try {
+      var saved = JSON.parse(localStorage.getItem(CLAIMED_KEY) || "{}");
+      return saved && typeof saved === "object" ? saved : {};
+    } catch (e) { return claimedMemory; }
+  }
+
+  function setClaimed(id, on) {
+    var all = readClaimed();
+    if (on) all[id] = true; else delete all[id];
+    claimedMemory = all;
+    try { localStorage.setItem(CLAIMED_KEY, JSON.stringify(all)); } catch (e) { /* kept in memory */ }
+  }
+
   function cell(tr, text) {
     var td = document.createElement("td");
     td.textContent = text == null ? "" : String(text);
@@ -114,11 +132,12 @@
   function loadWinners() {
     fetch("/api/winners").then(function (r) { return r.json(); }).then(function (rows) {
       var body = $("winners");
+      var claimed = readClaimed();
       body.textContent = "";
       if (!rows.length) {
         var tr = document.createElement("tr");
         var td = document.createElement("td");
-        td.colSpan = 4;
+        td.colSpan = 5;
         td.textContent = "No winners yet";
         tr.appendChild(td);
         body.appendChild(tr);
@@ -129,7 +148,15 @@
         cell(tr, w.rank != null ? w.rank : i + 1);
         cell(tr, w.id);
         cell(tr, w.votes);
-        cell(tr, w.claim != null ? w.claim : w.claim_code);
+        cell(tr, w.claim_code != null ? w.claim_code : "not found");
+        var td = document.createElement("td");
+        var tick = document.createElement("input");
+        tick.type = "checkbox";
+        tick.checked = !!claimed[w.id];
+        tick.setAttribute("aria-label", "Claimed: " + w.id);
+        tick.addEventListener("change", function () { setClaimed(w.id, tick.checked); });
+        td.appendChild(tick);
+        tr.appendChild(td);
         body.appendChild(tr);
       });
     }).catch(function () { /* try again on the next refresh */ });

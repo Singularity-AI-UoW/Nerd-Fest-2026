@@ -1,16 +1,21 @@
-"""The organiser page's controls: pause the show and remove a picture."""
+"""The organiser page's controls: pause the show, remove a picture, and the winners."""
 from __future__ import annotations
 
 import logging
+from typing import Callable
+
+from kiosk.winner import winners
 
 log = logging.getLogger(__name__)
 
 
 class StallControls:
-    def __init__(self, show, store, uploader):
+    def __init__(self, show, store, uploader, leaderboard: Callable[[], dict | None] = lambda: None):
+        """`leaderboard` returns the latest gallery leaderboard, or None if there is none yet."""
         self._show = show
         self._store = store
         self._uploader = uploader
+        self._leaderboard = leaderboard
 
     async def set_paused(self, p: bool) -> None:
         await self._show.set_paused(p)
@@ -35,4 +40,4 @@ class StallControls:
         return True
 
     def winners(self) -> list[dict]:
-        return []  # filled in once voting results are wired up
+        return winners(self._leaderboard(), self._store)

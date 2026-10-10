@@ -126,6 +126,8 @@ body.top3-on #idle-signup { display: none; } /* the card needs the whole width *
 }
 #winner > img { flex: 1; min-height: 0; }
 #winner-prompt { font-size: 44px; font-weight: 700; text-align: center; }
+#winner-claim { font-size: 44px; font-weight: 700; text-align: center; color: var(--purple); }
+#winner-deadline { font-size: 32px; text-align: center; }
 #winner-top3 { display: flex; gap: 16px; }
 #winner-top3 img { height: 140px; width: 140px; object-fit: cover; border-radius: 12px; }
 

@@ -84,6 +84,6 @@ async def test_gallery_failure_still_removes_record_never_uploaded(tmp_path):
     assert store.pending_uploads() == []
 
 
-def test_winners_is_empty_until_voting_is_wired(tmp_path):
+def test_winners_is_empty_without_a_leaderboard(tmp_path):
     controls, _, _, _ = make(tmp_path)
     assert controls.winners() == []

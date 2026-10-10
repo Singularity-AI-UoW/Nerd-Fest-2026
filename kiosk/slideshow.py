@@ -2,8 +2,8 @@
 
 Every interval it fetches /api/images and /api/leaderboard from the gallery and
 sends one `slideshow` message to the TV. If the gallery cannot be reached, the TV
-keeps the last list it was sent. The `winner` message is not sent here: it only
-appears after voting closes.
+keeps the last list it was sent. The last good leaderboard is kept in `leaderboard`
+for the winner screen (kiosk/winner.py), which sends the `winner` message after voting closes.
 """
 from __future__ import annotations
 
@@ -42,6 +42,7 @@ class Slideshow:
         self._images: Entries = []
         self._top3: Entries = []
         self._sent = False
+        self.leaderboard: dict | None = None  # last good /api/leaderboard: {closed, top3}; None if never
 
     def refresh_soon(self) -> None:
         """Ask for a refresh in a few seconds (after a new picture is made)."""
@@ -72,7 +73,10 @@ class Slideshow:
                 self._images, self._top3, changed = images[:LATEST_IMAGES], top3, True
         else:
             images = await self._get("/api/images", "images")
-            top3 = await self._get("/api/leaderboard", "top3")
+            board = await self._get_leaderboard()
+            top3 = board["top3"] if board is not None else None
+            if board is not None:
+                self.leaderboard = board
             if images is not None:
                 self._images, changed = self._entries(images, with_votes=False)[:LATEST_IMAGES], True
             if top3 is not None:
@@ -100,7 +104,19 @@ class Slideshow:
             log.warning("slideshow fetch %s failed: %s", path, type(exc).__name__)
             return None
 
-    def _absolute(self, url: str) -> str:
+    async def _get_leaderboard(self) -> dict | None:
+        try:
+            response = await self._http.get(self._base + "/api/leaderboard")
+            response.raise_for_status()
+            body = response.json()
+            if not isinstance(body["top3"], list):
+                raise ValueError("not a list")
+            return {"closed": body.get("closed") is True, "top3": body["top3"]}
+        except Exception as exc:  # noqa: BLE001 - network or shape errors: keep the last board
+            log.warning("slideshow fetch /api/leaderboard failed: %s", type(exc).__name__)
+            return None
+
+    def absolute_url(self, url: str) -> str:
         return url if url.startswith(("http://", "https://")) else self._base + url
 
     def _entries(self, items: list, *, with_votes: bool) -> Entries:
@@ -108,7 +124,7 @@ class Slideshow:
         for item in items:
             if not isinstance(item, dict) or not isinstance(item.get("url"), str) or not item["url"]:
                 continue
-            entry = {"url": self._absolute(item["url"]), "prompt": str(item.get("prompt") or "")}
+            entry = {"url": self.absolute_url(item["url"]), "prompt": str(item.get("prompt") or "")}
             if with_votes:
                 votes = item.get("votes")
                 entry["votes"] = votes if isinstance(votes, int) else 0

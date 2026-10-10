@@ -37,6 +37,7 @@ from kiosk.studio import Studio
 from kiosk.takehome import build_takehome, signup_qr_svg
 from kiosk.uploader import Uploader
 from kiosk.voice import Voice
+from kiosk.winner import WinnerScreen
 from kiosk.web.server import Hub, create_app
 
 log = logging.getLogger("kiosk")
@@ -138,7 +139,7 @@ async def run_app(cfg: Config, secrets: Secrets, *, fake: bool, headless: bool, 
                 Studio(page), images, uploader, voice,
                 takehome=takehome,
             )
-            app = create_app(hub, bus, store, StallControls(show, store, uploader))
+            app = create_app(hub, bus, store, StallControls(show, store, uploader, lambda: slideshow.leaderboard))
             server = uvicorn.Server(
                 uvicorn.Config(app, host="127.0.0.1", port=port, log_level="warning")
             )
@@ -160,10 +161,15 @@ async def run_app(cfg: Config, secrets: Secrets, *, fake: bool, headless: bool, 
                 )
                 key_input.start()  # ValueError for a bad key name; other failures only warn
 
+            winner = WinnerScreen(
+                cfg.voting.close_at, slideshow, hub,
+                is_idle=lambda: show.state == "idle" and not show.paused and show.online,
+            )
             tasks = [
                 asyncio.create_task(show.run_forever(), name="show"),
                 asyncio.create_task(uploader.run_forever(), name="uploader"),
                 asyncio.create_task(slideshow.run_forever(), name="slideshow"),
+                asyncio.create_task(winner.run_forever(), name="winner"),
             ]
             done, _ = await asyncio.wait(
                 [server_task, *tasks], return_when=asyncio.FIRST_COMPLETED
