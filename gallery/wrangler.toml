@@ -10,7 +10,7 @@ VOTE_CLOSE_AT = "2026-10-30T18:00:00+13:00"
 [[d1_databases]]
 binding = "DB"
 database_name = "nerdfest-gallery"
-database_id = "REPLACE_AFTER_d1_create"
+database_id = "2601b0fd-249e-4bc0-a1aa-7595c4e07ae1"
 
 [[r2_buckets]]
 binding = "IMAGES"
