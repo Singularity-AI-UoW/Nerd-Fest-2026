@@ -13,6 +13,14 @@ from pathlib import Path
 
 from dotenv import dotenv_values
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+def repo_path(path: str) -> Path:
+    """A path from config.toml: absolute as given, relative ones from the repo root."""
+    p = Path(path)
+    return p if p.is_absolute() else REPO_ROOT / p
+
 
 @dataclass(frozen=True)
 class Models:
