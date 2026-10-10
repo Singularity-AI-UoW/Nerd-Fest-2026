@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nerd Fest image stall</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="tv">
+<div class="tv-grid">
+  <div class="stage">
+    <iframe id="studio" src="/studio" title="Image studio" hidden></iframe>
+    <div id="slideshow" class="big-panel" hidden></div>
+    <div id="winner" hidden>
+      <img id="winner-image" alt="Winning picture">
+      <div id="winner-prompt"></div>
+      <div id="winner-top3"></div>
+    </div>
+    <div id="takehome" hidden>
+      <img id="takehome-image" alt="Your picture">
+      <div id="takehome-side">
+        <div id="takehome-claim">Claim code<b id="takehome-code"></b></div>
+        <div class="qr-row">
+          <div class="qr-item"><div class="qr" id="takehome-qr"></div><div class="qr-label">Your picture</div></div>
+          <div class="qr-item" id="signup-item"><div class="qr" id="signup-qr"></div><div class="qr-label">Sign up</div></div>
+        </div>
+      </div>
+      <div id="takehome-winner">Winner: show your claim code at the stall</div>
+    </div>
+    <div id="step" class="big-panel" hidden><div id="step-prompt"></div></div>
+    <div id="offline" class="big-panel" hidden>Back soon</div>
+  </div>
+  <div class="side">
+    <div id="caption-block" hidden><div class="label">You said</div><div id="caption"></div></div>
+    <div id="narration-block" hidden><div class="label">Now</div><div id="narration"></div></div>
+    <div id="tweaks-block" hidden><div class="label">Tweaks</div><ol id="tweaks"></ol></div>
+    <div id="nerd" hidden></div>
+  </div>
+  <div class="footer" id="footer">Press the big button!</div>
+</div>
+<script src="/static/tv.js"></script>
+</body>
+</html>
