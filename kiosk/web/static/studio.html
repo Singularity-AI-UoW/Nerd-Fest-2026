@@ -11,7 +11,10 @@
 <textarea id="prompt" placeholder="Describe a picture" aria-label="Describe a picture"></textarea>
 <button id="generate" type="button">Make it!</button>
 <div class="studio-out">
-  <div id="busy" hidden><span class="spin"></span><span>Making your picture...</span></div>
+  <div id="busy" hidden>
+    <div class="canvas"><i class="star" style="left:18%;top:22%"></i><i class="star" style="left:70%;top:30%;animation-delay:.6s"></i><i class="star" style="left:40%;top:70%;animation-delay:1.2s"></i></div>
+    <span>Making your picture<span class="dots"><i>.</i><i>.</i><i>.</i></span></span>
+  </div>
   <img id="result" alt="Your picture" hidden>
 </div>
 <script>
@@ -27,6 +30,10 @@
   window.showImage = function (dataUrl) {
     result.src = dataUrl;
     result.hidden = false;
+    // Replay the reveal for every new picture (tweaks show a new one in the same place).
+    result.classList.remove("reveal");
+    void result.offsetWidth;
+    result.classList.add("reveal");
     busy.hidden = true;
   };
 

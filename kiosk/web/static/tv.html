@@ -9,10 +9,21 @@
 <body class="tv">
 <div class="tv-grid" id="tv-grid">
   <div class="stage">
+    <div id="backdrop" aria-hidden="true"><div class="burst"></div><div id="mosaic"></div><div class="shade"></div></div>
     <iframe id="studio" src="/studio" title="Image studio" hidden></iframe>
-    <div id="slideshow" class="big-panel" hidden></div>
+    <div id="slideshow" hidden></div>
+    <div id="attract" hidden aria-hidden="true">
+      <div class="attract-title">Press the big button!</div>
+      <div class="arcade-btn"></div>
+      <i class="star" style="left:6%;top:8%"></i>
+      <i class="star" style="left:88%;top:14%;animation-delay:.5s"></i>
+      <i class="star" style="left:14%;top:84%;animation-delay:1s"></i>
+      <i class="star" style="left:84%;top:80%;animation-delay:1.4s"></i>
+    </div>
     <div id="idle-signup" hidden><div class="qr" id="idle-signup-qr"></div><div class="qr-label">Club sign up</div></div>
     <div id="winner" hidden>
+      <div class="rays" aria-hidden="true"></div>
+      <div class="confetti" id="winner-confetti" aria-hidden="true"></div>
       <img id="winner-image" alt="Winning picture">
       <div id="winner-prompt"></div>
       <div id="winner-claim">Is this your code? <b id="winner-code"></b> Come to the stall by 6:30pm with your phone.</div>
@@ -20,6 +31,7 @@
       <div id="winner-top3"></div>
     </div>
     <div id="takehome" hidden>
+      <div class="confetti" id="takehome-confetti" aria-hidden="true"></div>
       <img id="takehome-image" alt="Your picture">
       <div id="takehome-side">
         <div id="takehome-claim">Claim code<b id="takehome-code"></b></div>
@@ -30,8 +42,15 @@
       </div>
       <div id="takehome-winner">Winners at 6pm. Scan your QR within 5 minutes to leave a contact if you won't be here.</div>
     </div>
-    <div id="step" class="big-panel" hidden><div id="step-prompt"></div></div>
-    <div id="offline" class="big-panel" hidden>Back soon</div>
+    <div id="step" class="big-panel" hidden>
+      <div class="step-deco deco-choose" aria-hidden="true">
+        <div class="mode-demo kid"><div class="arcade-btn hold"></div><span>Kid</span></div>
+        <div class="mode-demo nerd"><div class="arcade-btn twice"></div><span>Nerd</span></div>
+      </div>
+      <div class="step-deco deco-listen" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div id="step-prompt"></div>
+    </div>
+    <div id="offline" class="big-panel" hidden><span>Back soon</span></div>
   </div>
   <div class="side">
     <div id="caption-block" hidden><div class="label">You said</div><div id="caption"></div></div>
@@ -39,7 +58,7 @@
     <div id="tweaks-block" hidden><div class="label">Tweaks</div><ol id="tweaks"></ol></div>
     <div id="nerd" hidden></div>
   </div>
-  <div class="footer" id="footer">Press the big button!</div>
+  <div class="footer" id="footer"></div>
 </div>
 <script src="/static/tv.js"></script>
 </body>

@@ -7,3 +7,6 @@ gallery/.wrangler/
 __pycache__/
 .pytest_cache/
 output.png
+
+# Brainstorm mockups
+.superpowers/
