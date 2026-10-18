@@ -31,6 +31,7 @@
   // The moving wall of pictures behind the idle screen.
   var MOSAIC_COLS = 7;
   var MOSAIC_PER_COL = 6;
+  var MIN_FIT = 0.55; // the side column's text can shrink to this fraction to fit
   var CONFETTI = ["#ff9a2e", "#c08bff", "#4ade80", "#ffd23f", "#ff5ca8", "#2fd4f7"];
 
   var $ = function (id) { return document.getElementById(id); };
@@ -40,7 +41,8 @@
     state: "", mode: "", captionText: "", captionFinal: false, narration: "", tweaks: [],
     tools: [], prompt: null, slides: [], top3: [], signupQr: "", slideIndex: 0, slideCount: 0,
     slideDrawn: false, winnerUntil: 0, notice: "", noticeTimer: null, slideTimer: null,
-    panel: "", stepShown: null, footerKey: null, mosaicKey: null, tweaksKey: null, nerdKey: null
+    panel: "", stepShown: null, footerKey: null, mosaicKey: null, tweaksKey: null, nerdKey: null,
+    fitKey: null
   };
 
   function el(tag, cls, text) {
@@ -106,6 +108,23 @@
       return $(id).hidden;
     });
     document.body.classList.toggle("stage-wide", sideEmpty && $("studio").hidden);
+    fitSide();
+  }
+
+  // Shrink the side column's text in small steps until nothing is cut off at the bottom.
+  // Only re-measured when what it shows changes.
+  function fitSide() {
+    var side = document.querySelector(".side");
+    var k = [st.captionText, st.narration, st.tweaksKey, $("tweaks-block").hidden,
+      document.body.classList.contains("stage-wide")].join("|");
+    if (k === st.fitKey) return;
+    st.fitKey = k;
+    var fit = 1;
+    side.style.setProperty("--fit", "1");
+    while (fit > MIN_FIT && side.scrollHeight > side.clientHeight + 1) {
+      fit = Math.round((fit - 0.05) * 100) / 100;
+      side.style.setProperty("--fit", String(fit));
+    }
   }
 
   function fitScreen() {
