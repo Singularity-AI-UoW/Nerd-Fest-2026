@@ -483,44 +483,47 @@ body[data-state="listen"] .deco-listen { display: flex; }
   background: linear-gradient(160deg, #1e1233, var(--bg) 60%);
   border-left: 4px solid var(--panel-2);
 }
-.side > div { animation: slide-in-right .5s var(--bounce) both; }
+/* tv.js lowers --fit until everything fits (long tweaks would otherwise be cut off). */
+.side > div { flex: none; animation: slide-in-right .5s var(--bounce) both; }
 .side .label {
   display: inline-block;
   margin-bottom: 10px;
   padding: 4px 18px;
   border-radius: 999px;
   background: var(--purple-deep);
-  font-size: 34px;
+  font-size: calc(34px * var(--fit, 1));
   font-weight: 800;
   color: #fff;
   text-transform: uppercase;
   letter-spacing: 2px;
 }
-#caption { font-size: 56px; font-weight: 800; line-height: 1.2; }
+#caption { font-size: calc(56px * var(--fit, 1)); font-weight: 800; line-height: 1.2; }
 #caption.partial { color: var(--muted); }
 #caption.partial::after { content: ""; display: inline-block; width: 6px; height: 1em; margin-left: 8px; vertical-align: -.12em; background: var(--orange); animation: blink 1s steps(1) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
-#narration { font-size: 48px; line-height: 1.25; color: var(--orange); font-weight: 700; }
+#narration { font-size: calc(48px * var(--fit, 1)); line-height: 1.25; color: var(--orange); font-weight: 700; }
 #narration.pop { animation: rise .45s ease-out both; }
+/* The nerd log takes whatever room is left and is cut off at the bottom, so it never shrinks the rest. */
+.side > #nerd { flex: 1 1 0; min-height: 0; }
 #nerd { font-size: 30px; line-height: 1.25; color: var(--muted); overflow: hidden; overflow-wrap: anywhere; }
 #nerd > div { margin-bottom: 8px; }
 #nerd > div.new { animation: slide-in-right .4s ease-out both; }
 #nerd .tool { color: var(--green); font-weight: 700; }
-#tweaks { margin: 0; padding: 0; list-style: none; font-size: 52px; font-weight: 800; }
-#tweaks li { margin-bottom: 18px; display: flex; align-items: baseline; animation: slide-in-right .5s var(--bounce) both; }
+#tweaks { margin: 0; padding: 0; list-style: none; font-size: calc(52px * var(--fit, 1)); font-weight: 800; }
+#tweaks li { margin-bottom: calc(18px * var(--fit, 1)); display: flex; align-items: baseline; animation: slide-in-right .5s var(--bounce) both; }
 #tweaks li span {
   flex: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 72px;
-  height: 72px;
+  width: 1.4em;
+  height: 1.4em;
   margin-right: 20px;
   border-radius: 50%;
   background: var(--orange);
   color: #1a0f00;
   font-weight: 900;
-  transform: translateY(8px);
+  transform: translateY(.15em);
 }
 
 /* --- Footer: a ticker that never stops scrolling --- */
