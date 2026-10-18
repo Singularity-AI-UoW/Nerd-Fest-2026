@@ -14,6 +14,8 @@
     var el = $("feedback");
     el.textContent = text;
     el.className = "feedback" + (isError ? " err" : "");
+    void el.offsetWidth; // restart the pop-in, even for the same message twice
+    el.classList.add("show");
     if (feedbackTimer) clearTimeout(feedbackTimer);
     feedbackTimer = setTimeout(function () { el.textContent = ""; }, 6000);
   }
@@ -107,18 +109,25 @@
       : "";
   }
 
+  var lightsKey = null;
+
   function renderStatus(m) {
     var lights = $("lights");
-    lights.textContent = "";
     var services = m.services && typeof m.services === "object" ? m.services : {};
-    Object.keys(services).forEach(function (name) {
-      var el = document.createElement("span");
-      var up = isUp(services[name]);
-      el.className = "light" + (up ? " ok" : "");
-      el.appendChild(document.createElement("i"));
-      el.appendChild(document.createTextNode(name + (up ? "" : " (down)")));
-      lights.appendChild(el);
-    });
+    // Rebuilt only when a light changes, so the lights don't flicker on every status message.
+    var key = Object.keys(services).map(function (name) { return name + "=" + isUp(services[name]); }).join(",");
+    if (key !== lightsKey) {
+      lightsKey = key;
+      lights.textContent = "";
+      Object.keys(services).forEach(function (name) {
+        var el = document.createElement("span");
+        var up = isUp(services[name]);
+        el.className = "light" + (up ? " ok" : "");
+        el.appendChild(document.createElement("i"));
+        el.appendChild(document.createTextNode(name + (up ? "" : " (down)")));
+        lights.appendChild(el);
+      });
+    }
     bothDown = "gallery" in services && "google" in services &&
       !isUp(services.gallery) && !isUp(services.google);
     renderBanner();
@@ -219,14 +228,14 @@
   function connect() {
     var proto = location.protocol === "https:" ? "wss:" : "ws:";
     var ws = new WebSocket(proto + "//" + location.host + "/ws");
-    ws.onopen = function () { $("conn").textContent = "connected"; };
+    ws.onopen = function () { $("conn").textContent = "connected"; $("conn").className = "conn ok"; };
     ws.onmessage = function (ev) {
       var m;
       try { m = JSON.parse(ev.data); } catch (e) { return; }
       var h = m && handlers[m.type];
       if (h) h(m);
     };
-    ws.onclose = function () { $("conn").textContent = "reconnecting..."; setTimeout(connect, 1000); };
+    ws.onclose = function () { $("conn").textContent = "reconnecting..."; $("conn").className = "conn"; setTimeout(connect, 1000); };
     ws.onerror = function () { ws.close(); };
   }
 
