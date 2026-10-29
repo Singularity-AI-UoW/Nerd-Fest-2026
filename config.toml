@@ -49,7 +49,7 @@ max_request_chars = 200
 max_stt_retries = 1
 
 [voting]
-close_at = "2026-10-30T18:00:00+13:00"
+close_at = "2026-10-30T18:30:00+13:00"
 claim_until = "2026-10-30T18:30:00+13:00"
 
 [files]

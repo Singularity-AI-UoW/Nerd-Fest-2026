@@ -1,8 +1,8 @@
 # Nerd Fest 2026 AI image stall
 
-A self-running stall for families. A child presses the big arcade button, says what picture they want, and an AI agent draws it live on the TV. Every picture goes to the gallery website, where people can vote, and the winners claim a prize at the stall.
+A self-running stall for families. A child presses the big arcade button, says what picture they want, and an AI agent draws it live on the TV. Every picture goes to the gallery website, where people can vote. The winner of the day gets a Prezzy card, sent by email or text.
 
-It runs on a Windows laptop at the venue. Setup is from 1pm on 30/10/2026. Voting closes at 6:00pm and prizes can be claimed until 6:30pm.
+It runs on a Windows laptop at the venue. Setup is from 1pm on 30/10/2026. The stall and voting run until 6:30pm, then the prize is sent.
 
 ## First-time setup (Windows laptop)
 
@@ -51,11 +51,11 @@ Use the organiser page (`/organiser`).
 
   If nobody does anything for 3 minutes, the stall moves on by itself. Pictures also show their QR code on the idle slideshow, so visitors can come back and scan it later. That QR has no claim code in it: only the take-home card shows the claim code.
 - **Remove an image.** **Remove last image** takes down the most recent picture. To remove another, type its 8-character id and click Remove. It is deleted from the gallery as well.
-- **Winners.** After voting closes, the top three appear here with their claim codes, and the TV shows the winning picture with its claim code.
-  - **Contact / Code.** Visitors can leave an email or mobile number on their picture page within 5 minutes of making it. **Code ✓** means the contact came from the picture's owner. Never send the prize to a **✗** contact.
-  - **In person.** Hand the card over only if their phone shows the picture page with the same claim code. Someone who only photographed the TV won't have it.
-  - **At 6:30pm.** If 1st place hasn't come and has no ✓ contact, go down the list: the first with a ✓ contact gets the card details.
-  - Tick **Claimed** when the prize has been handed over or sent.
+- **Prize contacts.** The prize is only sent, never handed over, so tell every family to scan their QR on the take-home card and leave a parent's email or mobile. The form is open for 5 minutes after the picture is made.
+- **Winners.** After voting closes at 6:30pm, the top three appear here with their claim codes, and the TV shows the winning picture with its claim code.
+  - **Contact / Code.** **Code ✓** means the contact came from the picture's owner. Never send the prize to a **✗** contact.
+  - **Sending the prize.** Send the Prezzy card details to 1st place's ✓ contact. If 1st has no ✓ contact, go down the list: the first with a ✓ contact gets it.
+  - Tick **Claimed** when the prize has been sent.
 
 ## After the event
 

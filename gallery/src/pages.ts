@@ -109,7 +109,7 @@ main>img{box-shadow:0 0 0 4px var(--orange),0 0 50px rgba(255,154,46,.35);animat
 `;
 
 // The scrolling strip at the top of every page, like the one on the stall's TV.
-const TICKER_LINES = ["Made live at the Nerd Fest AI stall", "Vote for your favourite", "Winners at 6pm"];
+const TICKER_LINES = ["Made live at the Nerd Fest AI stall", "Vote for your favourite", "Winners at 6:30pm"];
 const TICKER = (() => {
   const run = TICKER_LINES.map((l) => `<span><b>★</b>${l}</span>`).join("");
   return `<div class="ticker" aria-hidden="true"><div>${run}${run}${run}${run}</div></div>`;
@@ -308,8 +308,8 @@ function contactForm(img: ImageRow): string {
   const until = contactDeadline(img.created_at);
   if (until === null || Date.now() >= until.getTime()) return "";
   return `<form class="contact" id="contact-form" data-contact-until="${until.toISOString()}" hidden>
-<h2>Won&#39;t be here at 6pm?</h2>
-<p>Leave an email or mobile number and we&#39;ll send the prize to you if you win.</p>
+<h2>Want the prize if you win?</h2>
+<p>Leave an email or mobile number. We send the prize after 6:30pm, so this is the only way to get it.</p>
 <input id="contact" name="contact" type="text" inputmode="email" autocomplete="email" maxlength="100" required aria-label="Email or mobile number" placeholder="Email or mobile number">
 <button class="btn" type="submit">Save</button>
 <p class="note">Under 16? Use a parent's or caregiver's details. We only use this to send the prize, and delete it after the event.</p>
@@ -327,7 +327,7 @@ export function renderImagePage(img: ImageRow): string {
 <div class="claim" id="claim" hidden>
 <p>Your claim code:</p>
 <strong class="code" id="claim-code"></strong>
-<p>Keep this! If your picture wins, show it at the stall before 6:30pm.</p>
+<p>Keep this! Leave a contact below within 5 minutes so we can send the prize if you win.</p>
 </div>
 ${form}
 <div class="actions">

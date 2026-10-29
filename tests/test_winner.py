@@ -12,7 +12,7 @@ from kiosk.winner import WinnerScreen, fetch_claims, winners
 from tests.test_slideshow import BASE, Gallery, RecordingHub, top_entry
 
 NZ = timezone(timedelta(hours=13))
-CLOSE = datetime(2026, 10, 30, 18, 0, tzinfo=NZ)
+CLOSE = datetime(2026, 10, 30, 18, 30, tzinfo=NZ)
 
 
 def add(store, prompt):

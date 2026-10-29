@@ -9,7 +9,7 @@ def test_loads_spec_defaults():
     c = load_config(REPO_ROOT / "config.toml")
     assert c.models.image == "gemini-3.1-flash-lite-image"
     assert c.timeouts.agent_cap_s == 45 and c.limits.max_tool_calls == 10
-    assert c.voting.close_at.isoformat() == "2026-10-30T18:00:00+13:00"
+    assert c.voting.close_at.isoformat() == "2026-10-30T18:30:00+13:00"
     assert len(c.preset_tweaks) == 4
 
 
