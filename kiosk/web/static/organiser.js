@@ -172,7 +172,7 @@
   }
 
   // Contact column: the contact itself for "ok"/"mismatch", else this text.
-  var CONTACT_TEXT = { none: "In person only", unreachable: "Can't reach the gallery" };
+  var CONTACT_TEXT = { none: "No contact left", unreachable: "Can't reach the gallery" };
   var CODE_MARK = { ok: "✓", mismatch: "✗ don't send" };
 
   function loadWinners() {
