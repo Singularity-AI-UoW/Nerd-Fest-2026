@@ -167,7 +167,7 @@ describe("contact form on the picture page", () => {
     await seed(ID, created);
     const html = await (await SELF.fetch(`${BASE}/i/${ID}`)).text();
     expect(html).toContain('id="contact-form"');
-    expect(html).toContain("Won&#39;t be here at 6pm?");
+    expect(html).toContain("Want the prize if you win?");
     expect(html).toContain("parent");
     // The browser shows the form only with a claim code and before this deadline.
     expect(html).toContain(`data-contact-until="${new Date(Date.parse(created) + 5 * 60_000).toISOString()}"`);

@@ -249,8 +249,8 @@ def test_tv_uses_exact_visitor_strings(client):
     text = client.get("/tv").text + client.get("/static/tv.js").text
     for s in ["Hold for kid mode, press twice for nerd mode", "Hold the button and talk",
               "Press to go, hold to try again", "Back soon",
-              "Is this your code?", "Come to the stall by 6:30pm with your phone.",
-              "Winners at 6pm. Scan your QR within 5 minutes to leave a contact if you won't be here.",
+              "Is this your code?", "We'll email or text the prize to the contact you left.",
+              "Scan your QR within 5 minutes and leave a contact. Prizes are sent after 6:30pm.",
               "Press the button when you're done", "Club sign up", "Press the big button!"]:
         assert s in text, s
 

@@ -90,7 +90,7 @@ describe("GET /i/:id", () => {
     expect(html).toContain("history.replaceState");
     expect(html).toContain("\\d{4}");
     expect(html).toContain("Your claim code:");
-    expect(html).toContain("Keep this! If your picture wins, show it at the stall before 6:30pm.");
+    expect(html).toContain("Keep this! Leave a contact below within 5 minutes so we can send the prize if you win.");
     expect(html).toContain('<button class="vote" data-id="abcdefg2"');
     expect(html).toContain('href="/"');
     expect(html).toContain("See the gallery");
