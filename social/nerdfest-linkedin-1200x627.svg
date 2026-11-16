@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="627" viewBox="0 0 1200 627" role="img" aria-labelledby="t d">
+<title id="t">Say it. Watch AI draw it. - Singularity at Nerd Fest 2026</title>
+<desc id="d">Banner for the Singularity AI Club stall at Nerd Fest 2026: Friday 30 October, 3:00 to 6:30pm, The Pā, University of Waikato, Hamilton. Free entry.</desc>
+<defs>
+  <radialGradient id="gBg" cx="50%" cy="38%" r="75%"><stop offset="0" stop-color="#1d1a30"/><stop offset="1" stop-color="#08060e"/></radialGradient>
+  <linearGradient id="gBrand" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#00f2ff"/><stop offset=".48" stop-color="#8b3fff"/><stop offset="1" stop-color="#ff1f7e"/></linearGradient>
+  <linearGradient id="gTrace" gradientUnits="userSpaceOnUse" x1="250" y1="152" x2="250" y2="348"><stop offset="0" stop-color="#00f2ff"/><stop offset=".48" stop-color="#8b3fff"/><stop offset="1" stop-color="#ff1f7e"/></linearGradient>
+  <linearGradient id="gSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b1140"/><stop offset=".5" stop-color="#6a2bd8"/><stop offset="1" stop-color="#ff1f7e"/></linearGradient>
+  <linearGradient id="gSun" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd23f"/><stop offset="1" stop-color="#ff7a00"/></linearGradient>
+  <filter id="glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="6"/></filter>
+</defs>
+<rect width="1200" height="627" fill="url(#gBg)"/>
+<g stroke="#00f2ff" stroke-width=".6" opacity=".05"><path d="M0,0V627"/><path d="M54,0V627"/><path d="M108,0V627"/><path d="M162,0V627"/><path d="M216,0V627"/><path d="M270,0V627"/><path d="M324,0V627"/><path d="M378,0V627"/><path d="M432,0V627"/><path d="M486,0V627"/><path d="M540,0V627"/><path d="M594,0V627"/><path d="M648,0V627"/><path d="M702,0V627"/><path d="M756,0V627"/><path d="M810,0V627"/><path d="M864,0V627"/><path d="M918,0V627"/><path d="M972,0V627"/><path d="M1026,0V627"/><path d="M1080,0V627"/><path d="M1134,0V627"/><path d="M1188,0V627"/><path d="M0,0H1200"/><path d="M0,54H1200"/><path d="M0,108H1200"/><path d="M0,162H1200"/><path d="M0,216H1200"/><path d="M0,270H1200"/><path d="M0,324H1200"/><path d="M0,378H1200"/><path d="M0,432H1200"/><path d="M0,486H1200"/><path d="M0,540H1200"/><path d="M0,594H1200"/></g>
+<svg x="52" y="36" width="72" height="72" viewBox="0 0 500 500"><g id="Icon" transform="matrix(1.157407,0,0,1.157407,-39.351852,-39.351852)">
+        <circle cx="250" cy="250" r="216" style="fill:url(#lgR1);"/>
+        <circle cx="250" cy="250" r="216" style="fill:none;stroke:url(#lgL2);stroke-width:1.8px;"/>
+        <g>
+            <g>
+                <clipPath id="lgC3">
+                    <circle cx="250" cy="250" r="216"/>
+                </clipPath>
+                <g clip-path="url(#lgC3)">
+                    <g opacity="0.05">
+                        <path d="M40,152L460,152" style="fill:none;fill-rule:nonzero;stroke:rgb(0,242,255);stroke-width:0.5px;"/>
+                        <path d="M40,200L460,200" style="fill:none;fill-rule:nonzero;stroke:rgb(0,242,255);stroke-width:0.5px;"/>
+                        <path d="M40,250L460,250" style="fill:none;fill-rule:nonzero;stroke:rgb(0,242,255);stroke-width:0.5px;"/>
+                        <path d="M40,300L460,300" style="fill:none;fill-rule:nonzero;stroke:rgb(0,242,255);stroke-width:0.5px;"/>
+                        <path d="M40,348L460,348" style="fill:none;fill-rule:nonzero;stroke:rgb(0,242,255);stroke-width:0.5px;"/>
+                        <path d="M185,40L185,460" style="fill:none;fill-rule:nonzero;stroke:rgb(0,242,255);stroke-width:0.5px;"/>
+                        <path d="M218,40L218,460" style="fill:none;fill-rule:nonzero;stroke:rgb(0,242,255);stroke-width:0.5px;"/>
+                        <path d="M250,40L250,460" style="fill:none;fill-rule:nonzero;stroke:rgb(0,242,255);stroke-width:0.5px;"/>
+                        <path d="M282,40L282,460" style="fill:none;fill-rule:nonzero;stroke:rgb(0,242,255);stroke-width:0.5px;"/>
+                        <path d="M315,40L315,460" style="fill:none;fill-rule:nonzero;stroke:rgb(0,242,255);stroke-width:0.5px;"/>
+                    </g>
+                </g>
+            </g>
+        </g>
+        <g opacity="0.3">
+            <path d="M250,152L295,152C308.333,152 315,158.667 315,172L315,230C315,243.333 308.333,250 295,250L205,250C191.667,250 185,256.667 185,270L185,328C185,341.333 191.667,348 205,348L250,348" style="fill:none;fill-rule:nonzero;stroke:url(#lgL4);stroke-width:30px;stroke-linecap:round;"/>
+            <path d="M250,152L250,112" style="fill:none;fill-rule:nonzero;stroke:rgb(0,242,255);stroke-width:20px;stroke-linecap:round;"/>
+            <path d="M315,152L360,152" style="fill:none;fill-rule:nonzero;stroke:rgb(0,242,255);stroke-width:20px;stroke-linecap:round;"/>
+            <path d="M315,152L315,112" style="fill:none;fill-rule:nonzero;stroke:rgb(0,242,255);stroke-width:20px;stroke-linecap:round;"/>
+            <path d="M315,250L360,250" style="fill:none;fill-rule:nonzero;stroke:rgb(139,63,255);stroke-width:20px;stroke-linecap:round;"/>
+            <path d="M185,250L140,250" style="fill:none;fill-rule:nonzero;stroke:rgb(139,63,255);stroke-width:20px;stroke-linecap:round;"/>
+            <path d="M185,348L140,348" style="fill:none;fill-rule:nonzero;stroke:rgb(255,31,126);stroke-width:20px;stroke-linecap:round;"/>
+            <path d="M185,348L185,388" style="fill:none;fill-rule:nonzero;stroke:rgb(255,31,126);stroke-width:20px;stroke-linecap:round;"/>
+            <path d="M250,348L250,388" style="fill:none;fill-rule:nonzero;stroke:rgb(255,31,126);stroke-width:20px;stroke-linecap:round;"/>
+        </g>
+        <g opacity="0.65">
+            <path d="M250,152L295,152C308.333,152 315,158.667 315,172L315,230C315,243.333 308.333,250 295,250L205,250C191.667,250 185,256.667 185,270L185,328C185,341.333 191.667,348 205,348L250,348" style="fill:none;fill-rule:nonzero;stroke:url(#lgL5);stroke-width:14px;stroke-linecap:round;"/>
+            <path d="M250,152L250,114" style="fill:none;fill-rule:nonzero;stroke:rgb(0,242,255);stroke-width:10px;stroke-linecap:round;"/>
+            <path d="M315,152L358,152" style="fill:none;fill-rule:nonzero;stroke:rgb(0,242,255);stroke-width:10px;stroke-linecap:round;"/>
+            <path d="M315,152L315,114" style="fill:none;fill-rule:nonzero;stroke:rgb(0,242,255);stroke-width:10px;stroke-linecap:round;"/>
+            <path d="M315,250L358,250" style="fill:none;fill-rule:nonzero;stroke:rgb(139,63,255);stroke-width:10px;stroke-linecap:round;"/>
+            <path d="M185,250L142,250" style="fill:none;fill-rule:nonzero;stroke:rgb(139,63,255);stroke-width:10px;stroke-linecap:round;"/>
+            <path d="M185,348L142,348" style="fill:none;fill-rule:nonzero;stroke:rgb(255,31,126);stroke-width:10px;stroke-linecap:round;"/>
+            <path d="M185,348L185,386" style="fill:none;fill-rule:nonzero;stroke:rgb(255,31,126);stroke-width:10px;stroke-linecap:round;"/>
+            <path d="M250,348L250,386" style="fill:none;fill-rule:nonzero;stroke:rgb(255,31,126);stroke-width:10px;stroke-linecap:round;"/>
+        </g>
+        <g>
+            <path d="M250,152L295,152C308.333,152 315,158.667 315,172L315,230C315,243.333 308.333,250 295,250L205,250C191.667,250 185,256.667 185,270L185,328C185,341.333 191.667,348 205,348L250,348" style="fill:none;fill-rule:nonzero;stroke:url(#lgL6);stroke-width:9px;stroke-linecap:round;"/>
+            <path d="M250,152L250,115" style="fill:none;fill-rule:nonzero;stroke:rgb(0,242,255);stroke-width:6.5px;stroke-linecap:round;"/>
+            <path d="M315,152L357,152" style="fill:none;fill-rule:nonzero;stroke:rgb(0,242,255);stroke-width:6.5px;stroke-linecap:round;"/>
+            <path d="M315,152L315,115" style="fill:none;fill-rule:nonzero;stroke:rgb(0,242,255);stroke-width:6.5px;stroke-linecap:round;"/>
+            <path d="M315,250L357,250" style="fill:none;fill-rule:nonzero;stroke:rgb(139,63,255);stroke-width:6.5px;stroke-linecap:round;"/>
+            <path d="M185,250L143,250" style="fill:none;fill-rule:nonzero;stroke:rgb(139,63,255);stroke-width:6.5px;stroke-linecap:round;"/>
+            <path d="M185,348L143,348" style="fill:none;fill-rule:nonzero;stroke:rgb(255,31,126);stroke-width:6.5px;stroke-linecap:round;"/>
+            <path d="M185,348L185,385" style="fill:none;fill-rule:nonzero;stroke:rgb(255,31,126);stroke-width:6.5px;stroke-linecap:round;"/>
+            <path d="M250,348L250,385" style="fill:none;fill-rule:nonzero;stroke:rgb(255,31,126);stroke-width:6.5px;stroke-linecap:round;"/>
+        </g>
+        <g>
+            <circle cx="250" cy="152" r="10" style="fill:rgb(0,242,255);"/>
+            <circle cx="315" cy="152" r="10" style="fill:rgb(26,218,255);"/>
+            <circle cx="315" cy="250" r="10" style="fill:rgb(139,63,255);"/>
+            <circle cx="185" cy="250" r="10" style="fill:rgb(139,63,255);"/>
+            <circle cx="185" cy="348" r="10" style="fill:rgb(255,31,126);"/>
+            <circle cx="250" cy="348" r="10" style="fill:rgb(255,31,126);"/>
+            <circle cx="250" cy="112" r="7.5" style="fill:rgb(8,6,14);stroke:rgb(0,242,255);stroke-width:2.5px;"/>
+            <circle cx="357" cy="152" r="7.5" style="fill:rgb(8,6,14);stroke:rgb(0,242,255);stroke-width:2.5px;"/>
+            <circle cx="315" cy="112" r="7.5" style="fill:rgb(8,6,14);stroke:rgb(0,242,255);stroke-width:2.5px;"/>
+            <circle cx="357" cy="250" r="7.5" style="fill:rgb(8,6,14);stroke:rgb(139,63,255);stroke-width:2.5px;"/>
+            <circle cx="143" cy="250" r="7.5" style="fill:rgb(8,6,14);stroke:rgb(139,63,255);stroke-width:2.5px;"/>
+            <circle cx="143" cy="348" r="7.5" style="fill:rgb(8,6,14);stroke:rgb(255,31,126);stroke-width:2.5px;"/>
+            <circle cx="185" cy="388" r="7.5" style="fill:rgb(8,6,14);stroke:rgb(255,31,126);stroke-width:2.5px;"/>
+            <circle cx="250" cy="388" r="7.5" style="fill:rgb(8,6,14);stroke:rgb(255,31,126);stroke-width:2.5px;"/>
+        </g>
+    </g>
+    <defs>
+        <radialGradient id="lgR1" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(224.64,0,0,224.64,250,224.08)"><stop offset="0" style="stop-color:rgb(29,26,48);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(8,6,14);stop-opacity:1"/></radialGradient>
+        <linearGradient id="lgL2" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0,284,-284,0,250,108)"><stop offset="0" style="stop-color:rgb(0,242,255);stop-opacity:0.75"/><stop offset="0.48" style="stop-color:rgb(139,63,255);stop-opacity:0.75"/><stop offset="1" style="stop-color:rgb(255,31,126);stop-opacity:0.75"/></linearGradient>
+        <linearGradient id="lgL4" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0,284,-284,0,250,108)"><stop offset="0" style="stop-color:rgb(0,242,255);stop-opacity:1"/><stop offset="0.48" style="stop-color:rgb(139,63,255);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(255,31,126);stop-opacity:1"/></linearGradient>
+        <linearGradient id="lgL5" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0,284,-284,0,250,108)"><stop offset="0" style="stop-color:rgb(0,242,255);stop-opacity:1"/><stop offset="0.48" style="stop-color:rgb(139,63,255);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(255,31,126);stop-opacity:1"/></linearGradient>
+        <linearGradient id="lgL6" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0,284,-284,0,250,108)"><stop offset="0" style="stop-color:rgb(0,242,255);stop-opacity:1"/><stop offset="0.48" style="stop-color:rgb(139,63,255);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(255,31,126);stop-opacity:1"/></linearGradient>
+    </defs></svg><text x="138" y="72" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="30" font-weight="800" fill="#ffffff" text-anchor="start" letter-spacing="5" >SINGULARITY</text><text x="138" y="102" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="400" fill="#cdbfe6" text-anchor="start" letter-spacing="0" >University of Waikato AI Club</text><rect x="954" y="44" width="196" height="40" rx="20" fill="none" stroke="#00f2ff" stroke-width="2"/><text x="1052" y="71" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="800" fill="#00f2ff" text-anchor="middle" letter-spacing="3" >NERD FEST 2026</text><text x="60" y="215" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="80" font-weight="900" fill="#ffffff" text-anchor="start" letter-spacing="-1" >Say it.</text><text x="60" y="295" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="80" font-weight="900" fill="#ffffff" text-anchor="start" letter-spacing="-1" >Watch AI</text><text x="60" y="375" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="80" font-weight="900" text-anchor="start" letter-spacing="-1" fill="url(#gBrand)">draw it.</text><text x="60" y="421" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="22" font-weight="400" fill="#cdbfe6" text-anchor="start" letter-spacing="0" >Talk to an AI agent and watch it type the prompt</text><text x="60" y="451" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="22" font-weight="400" fill="#cdbfe6" text-anchor="start" letter-spacing="0" >and draw your picture, live on the big screen.</text><rect x="60" y="484" width="560" height="104" rx="20" fill="#0d0a18" stroke="url(#gBrand)" stroke-width="2.5"/><text x="88" y="530" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="36" font-weight="900" fill="#ffffff" text-anchor="start" letter-spacing="0" >Fri 30 Oct · 3:00–6:30pm</text><text x="88" y="564" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="400" fill="#ffffff" text-anchor="start" letter-spacing="0" >The Pā, University of Waikato, Hamilton · Free entry</text><g transform="translate(690 134)">
+  <rect x="0" y="0" width="460" height="244" rx="24" fill="none" stroke="url(#gBrand)" stroke-width="6" opacity=".55" filter="url(#glow)"/>
+  <rect x="0" y="0" width="460" height="244" rx="24" fill="#0d0a18" stroke="url(#gBrand)" stroke-width="3"/>
+  <clipPath id="liScreen"><rect x="10" y="10" width="440" height="224" rx="15"/></clipPath>
+  <clipPath id="liDone"><rect x="0" y="0" width="290" height="224"/></clipPath>
+  <clipPath id="liTodo"><rect x="290" y="0" width="150" height="224"/></clipPath>
+  <g clip-path="url(#liScreen)">
+    <rect x="10" y="10" width="440" height="224" fill="#0d0a18"/>
+    <g transform="translate(10 10)">
+      <g clip-path="url(#liDone)">
+        <rect width="440" height="224" fill="url(#gSky)"/><circle cx="35" cy="22" r="2.4" fill="#fff" opacity="0.6"/><circle cx="88" cy="49" r="1.6" fill="#fff" opacity="0.9"/><circle cx="132" cy="18" r="1.6" fill="#fff" opacity="0.6"/><circle cx="207" cy="31" r="2.4" fill="#fff" opacity="0.9"/><circle cx="255" cy="58" r="1.6" fill="#fff" opacity="0.6"/><circle cx="290" cy="18" r="1.6" fill="#fff" opacity="0.9"/><circle cx="396" cy="27" r="2.4" fill="#fff" opacity="0.6"/><circle cx="361" cy="67" r="1.6" fill="#fff" opacity="0.9"/><circle cx="326" cy="40" r="1.6" fill="#fff" opacity="0.6"/><circle cx="62" cy="81" r="2.4" fill="#fff" opacity="0.9"/>
+        <circle cx="158" cy="94" r="38" fill="url(#gSun)"/>
+        <polygon points="0,157 62,112 114,139 185,85 255,139 326,103 387,134 440,112 440,224 0,224" fill="#3a1b8f"/>
+        <polygon points="0,184 79,148 150,179 229,143 308,184 378,157 440,179 440,224 0,224" fill="#1a0f3d"/>
+      </g>
+      <g clip-path="url(#liTodo)" fill="none" stroke="#00f2ff" stroke-width="2" stroke-dasharray="7 7" opacity=".7">
+        <polygon points="0,157 62,112 114,139 185,85 255,139 326,103 387,134 440,112 440,224 0,224"/><polygon points="0,184 79,148 150,179 229,143 308,184 378,157 440,179 440,224 0,224"/>
+        <circle cx="158" cy="94" r="38" stroke="#ff1f7e"/>
+      </g>
+      <rect x="288" y="0" width="4" height="224" fill="#00f2ff"/>
+      <rect x="282" y="0" width="16" height="224" fill="#00f2ff" opacity=".25" filter="url(#glow)"/>
+    </g>
+    <rect x="24" y="188" width="412" height="32" rx="16.0" fill="#08060e" opacity=".82"/>
+    <text x="43.2" y="209.1" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="15" fill="#ffffff">a sunset over the mountains<tspan fill="#00f2ff" font-weight="700">|</tspan></text>
+    <rect x="24" y="24" width="54" height="22" rx="11.25" fill="#ff1f7e"/>
+    <circle cx="36.0" cy="35.25" r="3.3" fill="#fff"/>
+    <text x="42.75" y="40.2" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12.0" font-weight="800" letter-spacing="1" fill="#fff">LIVE</text>
+  </g>
+</g><g stroke-linecap="round" fill="none"><path d="M920,378V418" stroke="#8b3fff" stroke-width="12" opacity=".28"/><path d="M920,378V418" stroke="#8b3fff" stroke-width="5"/></g><circle cx="920" cy="426" r="7" fill="#8b3fff"/><circle cx="920" cy="378" r="6.5" fill="#08060e" stroke="#ff1f7e" stroke-width="2"/><rect x="771.0" y="473.0" width="12" height="18" rx="6.0" fill="#00f2ff"/><rect x="793.0" y="465.0" width="12" height="34" rx="6.0" fill="#16d5ff"/><rect x="815.0" y="455.0" width="12" height="54" rx="6.0" fill="#2db9ff"/><rect x="837.0" y="442.0" width="12" height="80" rx="6.0" fill="#439cff"/><rect x="859.0" y="453.0" width="12" height="58" rx="6.0" fill="#597fff"/><rect x="881.0" y="463.0" width="12" height="38" rx="6.0" fill="#6f63ff"/><rect x="903.0" y="450.0" width="12" height="64" rx="6.0" fill="#8646ff"/><rect x="925.0" y="439.0" width="12" height="86" rx="6.0" fill="#983bf0"/><rect x="947.0" y="458.0" width="12" height="48" rx="6.0" fill="#a937dd"/><rect x="969.0" y="468.0" width="12" height="28" rx="6.0" fill="#ba32ca"/><rect x="991.0" y="461.0" width="12" height="42" rx="6.0" fill="#cc2db7"/><rect x="1013.0" y="471.0" width="12" height="22" rx="6.0" fill="#dd28a4"/><rect x="1035.0" y="454.0" width="12" height="56" rx="6.0" fill="#ee2491"/><rect x="1057.0" y="467.0" width="12" height="30" rx="6.0" fill="#ff1f7e"/><text x="920" y="588" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="17" font-weight="400" fill="#cdbfe6" text-anchor="middle" letter-spacing="0" >@singularity_uow  ·  singularity-ai-uow.github.io</text>
+</svg>
